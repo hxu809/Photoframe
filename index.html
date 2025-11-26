@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>互动相框 - Interactive Photoframe</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 1920px;
+            height: 1080px;
+            transform: scale(0.8);
+        }
+
+        #photoframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .artwork-container {
+            position: absolute;
+            left: 663px;
+            top: 186px;
+            width: 950px;
+            height: 724px;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .artwork {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
+            transform: scale(0.95);
+        }
+
+        .artwork.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .artwork img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 3;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: #CFA850;
+            transform: scale(1.3);
+            box-shadow: 0 0 10px rgba(207, 168, 80, 0.6);
+        }
+
+        .title {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 3;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .title.show {
+            opacity: 1;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 16px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            z-index: 3;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        @media screen and (max-width: 1920px) {
+            .container {
+                transform: scale(0.6);
+            }
+        }
+
+        @media screen and (max-width: 1280px) {
+            .container {
+                transform: scale(0.4);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 相框 SVG -->
+        <object id="photoframe" data="Photoframe.svg" type="image/svg+xml"></object>
+
+        <!-- 画作容器 -->
+        <div class="artwork-container">
+            <div class="artwork active" data-index="0">
+                <img src="Guohua.svg" alt="国画">
+            </div>
+            <div class="artwork" data-index="1">
+                <img src="Starrysky.svg" alt="星空">
+            </div>
+            <div class="artwork" data-index="2">
+                <img src="Ukiyoe.svg" alt="浮世绘">
+            </div>
+        </div>
+
+        <!-- 标题 -->
+        <div class="title" id="artworkTitle">国画</div>
+
+        <!-- 指示器 -->
+        <div class="indicator">
+            <div class="dot active" data-index="0"></div>
+            <div class="dot" data-index="1"></div>
+            <div class="dot" data-index="2"></div>
+        </div>
+
+        <!-- 操作提示 -->
+        <div class="instruction">↕ 滚动鼠标滚轮切换画作</div>
+    </div>
+
+    <script>
+        // 画作数据
+        const artworks = [
+            { name: '国画', index: 0 },
+            { name: '星空', index: 1 },
+            { name: '浮世绘', index: 2 }
+        ];
+
+        let currentIndex = 0;
+        let isScrolling = false;
+
+        // 获取元素
+        const artworkElements = document.querySelectorAll('.artwork');
+        const dots = document.querySelectorAll('.dot');
+        const title = document.getElementById('artworkTitle');
+
+        // 切换画作
+        function switchArtwork(newIndex) {
+            if (newIndex === currentIndex || isScrolling) return;
+
+            // 防抖控制
+            isScrolling = true;
+
+            // 移除当前活动状态
+            artworkElements[currentIndex].classList.remove('active');
+            dots[currentIndex].classList.remove('active');
+
+            // 设置新的活动状态
+            currentIndex = newIndex;
+            artworkElements[currentIndex].classList.add('active');
+            dots[currentIndex].classList.add('active');
+
+            // 更新标题
+            title.textContent = artworks[currentIndex].name;
+            title.classList.add('show');
+
+            // 隐藏标题
+            setTimeout(() => {
+                title.classList.remove('show');
+            }, 2000);
+
+            // 解除防抖
+            setTimeout(() => {
+                isScrolling = false;
+            }, 600);
+        }
+
+        // 滚轮事件监听
+        document.addEventListener('wheel', (e) => {
+            e.preventDefault();
+
+            if (isScrolling) return;
+
+            if (e.deltaY > 0) {
+                // 向下滚动 - 下一张
+                const nextIndex = (currentIndex + 1) % artworks.length;
+                switchArtwork(nextIndex);
+            } else {
+                // 向上滚动 - 上一张
+                const prevIndex = (currentIndex - 1 + artworks.length) % artworks.length;
+                switchArtwork(prevIndex);
+            }
+        }, { passive: false });
+
+        // 点击指示器切换
+        dots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                const index = parseInt(dot.getAttribute('data-index'));
+                switchArtwork(index);
+            });
+        });
+
+        // 键盘事件监听（可选）
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                const nextIndex = (currentIndex + 1) % artworks.length;
+                switchArtwork(nextIndex);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                const prevIndex = (currentIndex - 1 + artworks.length) % artworks.length;
+                switchArtwork(prevIndex);
+            }
+        });
+
+        // 初始化显示第一个标题
+        setTimeout(() => {
+            title.classList.add('show');
+            setTimeout(() => {
+                title.classList.remove('show');
+            }, 2000);
+        }, 500);
+    </script>
+</body>
+</html>
