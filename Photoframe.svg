@@ -1,22 +1,23 @@
 <svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="Photoframe">
-<rect width="1920" height="1080" fill="none"/>
+<rect width="1920" height="1080" fill="white"/>
 <g id="Photoframe_body">
 <g id="Group 1">
 <g id="Bigframe">
-<path id="Vector 1" d="M555 186V89H1693V186H555Z" fill="#CFA850"/>
-<path id="Vector 3" d="M1613 186L1693 186L1693 910L1613 910L1613 186Z" fill="#CFA850"/>
-<path id="Vector 4" d="M555 186L663 186L663 910L555 910L555 186Z" fill="#CFA850"/>
-<path id="Vector 2" d="M555 1015V910H1693V1015H555Z" fill="#CFA850"/>
+<path id="Vector 1" d="M377 178V81H1515V178H377Z" fill="#CFA850"/>
+<path id="Vector 3" d="M1435 178L1515 178L1515 902L1435 902L1435 178Z" fill="#CFA850"/>
+<path id="Vector 4" d="M377 178L485 178L485 902L377 902L377 178Z" fill="#CFA850"/>
+<path id="Vector 2" d="M377 1007V902H1515V1007H377Z" fill="#CFA850"/>
 </g>
-<g id="image 2" >
-<rect x="555" y="70" width="1166" height="955" fill="none" shape-rendering="crispEdges"/>
+<g id="Photoframepicture" filter="url(#filter0_d_1_2)">
+<rect x="377" y="62" width="1166" height="955" fill="url(#pattern0_1_2)" shape-rendering="crispEdges"/>
 </g>
 </g>
+<rect id="Centerpoint" x="934" y="528" width="23" height="23" fill="#D9D9D9"/>
 </g>
 </g>
 <defs>
-<filter id="filter0_d_1_2" x="551" y="70" width="1174" height="963" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<filter id="filter0_d_1_2" x="373" y="62" width="1174" height="963" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
 <feOffset dy="4"/>
