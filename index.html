@@ -28,16 +28,7 @@
             transform: scale(0.8);
         }
 
-        #photoframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none;
-        }
-
+        /* 画作容器 - 在相框背后 */
         .artwork-container {
             position: absolute;
             left: 663px;
@@ -46,26 +37,41 @@
             height: 724px;
             overflow: hidden;
             z-index: 1;
+            background: #f5f5f5;
         }
 
+        /* 滚筒滚动区域 */
+        .artwork-scroll {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        /* 单个画作 */
         .artwork {
             position: absolute;
             width: 100%;
             height: 100%;
-            opacity: 0;
-            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
-            transform: scale(0.95);
-        }
-
-        .artwork.active {
-            opacity: 1;
-            transform: scale(1);
+            left: 0;
         }
 
         .artwork img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
+        }
+
+        /* 相框 - 覆盖在画作上方 */
+        #photoframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
         }
 
         .indicator {
@@ -85,6 +91,7 @@
             background: rgba(255, 255, 255, 0.4);
             cursor: pointer;
             transition: all 0.3s ease;
+            pointer-events: auto;
         }
 
         .dot.active {
@@ -143,21 +150,23 @@
 </head>
 <body>
     <div class="container">
-        <!-- 相框 SVG -->
-        <object id="photoframe" data="Photoframe.svg" type="image/svg+xml"></object>
-
-        <!-- 画作容器 -->
+        <!-- 画作容器 - 必须在相框之前渲染，这样相框才能覆盖在上面 -->
         <div class="artwork-container">
-            <div class="artwork active" data-index="0">
-                <img src="Guohua.svg" alt="国画">
-            </div>
-            <div class="artwork" data-index="1">
-                <img src="Starrysky.svg" alt="星空">
-            </div>
-            <div class="artwork" data-index="2">
-                <img src="Ukiyoe.svg" alt="浮世绘">
+            <div class="artwork-scroll" id="artworkScroll">
+                <div class="artwork" data-index="0" style="top: 0;">
+                    <img src="Guohua.svg" alt="国画">
+                </div>
+                <div class="artwork" data-index="1" style="top: 724px;">
+                    <img src="Starrysky.svg" alt="星空">
+                </div>
+                <div class="artwork" data-index="2" style="top: 1448px;">
+                    <img src="Ukiyoe.svg" alt="浮世绘">
+                </div>
             </div>
         </div>
+
+        <!-- 相框 SVG - 覆盖在画作上方 -->
+        <object id="photoframe" data="Photoframe.svg" type="image/svg+xml"></object>
 
         <!-- 标题 -->
         <div class="title" id="artworkTitle">国画</div>
@@ -183,27 +192,30 @@
 
         let currentIndex = 0;
         let isScrolling = false;
+        const ARTWORK_HEIGHT = 724; // 画作高度
 
         // 获取元素
-        const artworkElements = document.querySelectorAll('.artwork');
+        const artworkScroll = document.getElementById('artworkScroll');
         const dots = document.querySelectorAll('.dot');
         const title = document.getElementById('artworkTitle');
 
-        // 切换画作
-        function switchArtwork(newIndex) {
-            if (newIndex === currentIndex || isScrolling) return;
+        // 滚筒滚动到指定画作
+        function scrollToArtwork(index) {
+            if (index === currentIndex || isScrolling) return;
 
             // 防抖控制
             isScrolling = true;
 
-            // 移除当前活动状态
-            artworkElements[currentIndex].classList.remove('active');
-            dots[currentIndex].classList.remove('active');
+            // 计算滚动位置（向上移动为负值）
+            const scrollY = -index * ARTWORK_HEIGHT;
+            artworkScroll.style.transform = `translateY(${scrollY}px)`;
 
-            // 设置新的活动状态
-            currentIndex = newIndex;
-            artworkElements[currentIndex].classList.add('active');
-            dots[currentIndex].classList.add('active');
+            // 更新指示器
+            dots[currentIndex].classList.remove('active');
+            dots[index].classList.add('active');
+
+            // 更新当前索引
+            currentIndex = index;
 
             // 更新标题
             title.textContent = artworks[currentIndex].name;
@@ -214,10 +226,10 @@
                 title.classList.remove('show');
             }, 2000);
 
-            // 解除防抖
+            // 解除防抖（与CSS transition时间匹配）
             setTimeout(() => {
                 isScrolling = false;
-            }, 600);
+            }, 800);
         }
 
         // 滚轮事件监听
@@ -227,13 +239,13 @@
             if (isScrolling) return;
 
             if (e.deltaY > 0) {
-                // 向下滚动 - 下一张
+                // 向下滚动 - 下一张（画作向上移动）
                 const nextIndex = (currentIndex + 1) % artworks.length;
-                switchArtwork(nextIndex);
+                scrollToArtwork(nextIndex);
             } else {
-                // 向上滚动 - 上一张
+                // 向上滚动 - 上一张（画作向下移动）
                 const prevIndex = (currentIndex - 1 + artworks.length) % artworks.length;
-                switchArtwork(prevIndex);
+                scrollToArtwork(prevIndex);
             }
         }, { passive: false });
 
@@ -241,18 +253,18 @@
         dots.forEach(dot => {
             dot.addEventListener('click', () => {
                 const index = parseInt(dot.getAttribute('data-index'));
-                switchArtwork(index);
+                scrollToArtwork(index);
             });
         });
 
-        // 键盘事件监听（可选）
+        // 键盘事件监听
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
                 const nextIndex = (currentIndex + 1) % artworks.length;
-                switchArtwork(nextIndex);
+                scrollToArtwork(nextIndex);
             } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                 const prevIndex = (currentIndex - 1 + artworks.length) % artworks.length;
-                switchArtwork(prevIndex);
+                scrollToArtwork(prevIndex);
             }
         });
 
