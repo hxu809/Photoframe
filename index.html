@@ -120,6 +120,59 @@
             font-size: 14px;
             opacity: 0.7;
             z-index: 10;
+            transition: opacity 0.3s;
+        }
+
+        /* Ukiyoe特殊提示 */
+        .ukiyoe-hint {
+            display: none;
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #d4a574;
+            font-size: 16px;
+            font-weight: bold;
+            opacity: 0;
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+
+        .ukiyoe-hint.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /* 放大渐变过渡效果 */
+        .zoom-transition {
+            animation: zoomOut 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes zoomOut {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+                transform: translateX(-50%) scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1.05);
+            }
+        }
+
+        /* 点击提示光标 */
+        .artwork-container.clickable {
+            cursor: pointer;
         }
     </style>
 </head>
@@ -145,6 +198,7 @@
     </div>
 
     <div class="hint">↕ 滚动鼠标滚轮切换画作 | ← → 方向键切换</div>
+    <div class="ukiyoe-hint" id="ukiyoeHint">🌊 点击画作或按 Enter 进入动态浮世绘 🌊</div>
 
     <script>
         let currentIndex = 0;
@@ -155,7 +209,35 @@
 
         // 获取元素
         const artworkScroll = document.getElementById('artworkScroll');
+        const artworkContainer = document.querySelector('.artwork-container');
+        const ukiyoeHint = document.getElementById('ukiyoeHint');
+        const container = document.querySelector('.container');
         const TOTAL_ARTWORKS = 3;
+        const UKIYOE_INDEX = 2; // Ukiyoe在数组中的索引
+
+        // 检查并更新Ukiyoe提示
+        function updateUkiyoeHint() {
+            if (currentIndex === UKIYOE_INDEX) {
+                ukiyoeHint.classList.add('show');
+                artworkContainer.classList.add('clickable');
+            } else {
+                ukiyoeHint.classList.remove('show');
+                artworkContainer.classList.remove('clickable');
+            }
+        }
+
+        // 跳转到动态浮世绘页面
+        function goToDynamicUkiyoe() {
+            if (currentIndex !== UKIYOE_INDEX) return;
+
+            // 添加放大渐变动画
+            container.classList.add('zoom-transition');
+
+            // 动画完成后跳转
+            setTimeout(() => {
+                window.location.href = 'ukiyoe.html';
+            }, 1200);
+        }
 
         // 滚筒滚动到指定画作
         function scrollToArtwork(index) {
@@ -170,6 +252,9 @@
 
             // 更新当前索引
             currentIndex = index;
+
+            // 更新Ukiyoe提示
+            updateUkiyoeHint();
 
             // 解除防抖（与CSS transition时间匹配）
             setTimeout(() => {
@@ -212,6 +297,16 @@
             } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                 const prevIndex = (currentIndex - 1 + TOTAL_ARTWORKS) % TOTAL_ARTWORKS;
                 scrollToArtwork(prevIndex);
+            } else if (e.key === 'Enter') {
+                // 按Enter键在Ukiyoe时跳转到动态页面
+                goToDynamicUkiyoe();
+            }
+        });
+
+        // 点击画作容器跳转（仅在Ukiyoe时生效）
+        artworkContainer.addEventListener('click', () => {
+            if (currentIndex === UKIYOE_INDEX) {
+                goToDynamicUkiyoe();
             }
         });
     </script>
