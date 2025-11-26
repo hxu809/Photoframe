@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试对齐</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .test-container {
+            position: relative;
+            width: 1920px;
+            height: 1080px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid red;
+        }
+
+        /* 画作容器 - 显示边框以便查看位置 */
+        .artwork-test {
+            position: absolute;
+            left: 485px;
+            top: 178px;
+            width: 950px;
+            height: 724px;
+            border: 3px solid blue;
+            background: rgba(0, 255, 0, 0.2);
+            z-index: 1;
+        }
+
+        .artwork-test img {
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+        }
+
+        /* Centerpoint标记 */
+        .centerpoint {
+            position: absolute;
+            left: 934px;
+            top: 528px;
+            width: 23px;
+            height: 23px;
+            background: red;
+            z-index: 3;
+            opacity: 0.7;
+        }
+
+        /* Bigframe内框标记 */
+        .bigframe-marker {
+            position: absolute;
+            left: 485px;
+            top: 178px;
+            width: 950px;
+            height: 724px;
+            border: 2px dashed orange;
+            pointer-events: none;
+            z-index: 4;
+        }
+
+        /* 相框 */
+        .frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .info {
+            margin-top: 20px;
+            padding: 10px;
+            background: #fff;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>对齐测试页面</h1>
+    <div class="test-container">
+        <!-- 画作容器（绿色半透明背景 + 蓝色边框） -->
+        <div class="artwork-test">
+            <img src="Guohua.svg" alt="国画">
+        </div>
+
+        <!-- Centerpoint标记（红色方块） -->
+        <div class="centerpoint"></div>
+
+        <!-- Bigframe内框标记（橙色虚线） -->
+        <div class="bigframe-marker"></div>
+
+        <!-- 相框SVG -->
+        <object class="frame" data="Photoframe.svg?v=3" type="image/svg+xml"></object>
+    </div>
+
+    <div class="info">
+        <h3>说明：</h3>
+        <ul>
+            <li><strong>绿色半透明区域 + 蓝色边框</strong>: 画作容器 (485, 178, 950×724)</li>
+            <li><strong>红色方块</strong>: Centerpoint位置 (934, 528, 23×23)</li>
+            <li><strong>橙色虚线框</strong>: Bigframe内框边界 (485-1435, 178-902)</li>
+            <li><strong>金色边框</strong>: Photoframe.svg的Bigframe</li>
+        </ul>
+        <p>如果对齐正确，蓝色边框和橙色虚线框应该重合，画作应该完全填充在金色边框内。</p>
+    </div>
+</body>
+</html>
