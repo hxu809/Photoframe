@@ -2,9 +2,10 @@
 <defs>
     <!-- 木纹渐变 -->
     <linearGradient id="woodGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
-        <stop offset="50%" style="stop-color:#A0522D;stop-opacity:1" />
-        <stop offset="100%" style="stop-color:#8B4513;stop-opacity:1" />
+        <stop offset="0%" style="stop-color:#654321;stop-opacity:1" />
+        <stop offset="30%" style="stop-color:#8B4513;stop-opacity:1" />
+        <stop offset="70%" style="stop-color:#A0522D;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#654321;stop-opacity:1" />
     </linearGradient>
 
     <!-- 金色渐变 -->
@@ -14,12 +15,19 @@
         <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
     </linearGradient>
 
+    <!-- 深色渐变 -->
+    <linearGradient id="darkWoodGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#4a2511;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#654321;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#4a2511;stop-opacity:1" />
+    </linearGradient>
+
     <!-- 阴影滤镜 -->
     <filter id="frameShadow" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
-        <feOffset dx="4" dy="4" result="offsetblur"/>
+        <feGaussianBlur in="SourceAlpha" stdDeviation="10"/>
+        <feOffset dx="5" dy="5" result="offsetblur"/>
         <feComponentTransfer>
-            <feFuncA type="linear" slope="0.3"/>
+            <feFuncA type="linear" slope="0.4"/>
         </feComponentTransfer>
         <feMerge>
             <feMergeNode/>
@@ -27,111 +35,116 @@
         </feMerge>
     </filter>
 
-    <!-- 浮雕效果 -->
-    <filter id="emboss">
-        <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-        <feSpecularLighting in="blur" surfaceScale="5" specularConstant="0.75"
-                           specularExponent="20" lighting-color="#white" result="specOut">
-            <fePointLight x="-5000" y="-10000" z="20000"/>
-        </feSpecularLighting>
-        <feComposite in="specOut" in2="SourceAlpha" operator="in" result="specOut"/>
-        <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic"
-                    k1="0" k2="1" k3="1" k4="0"/>
+    <!-- 内阴影效果 -->
+    <filter id="innerShadow">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur"/>
+        <feOffset in="blur" dx="2" dy="2" result="offsetBlur"/>
+        <feFlood flood-color="#000000" flood-opacity="0.5" result="color"/>
+        <feComposite in="color" in2="offsetBlur" operator="in" result="shadow"/>
+        <feComposite in="shadow" in2="SourceAlpha" operator="in" result="innerShadow"/>
+        <feMerge>
+            <feMergeNode in="SourceGraphic"/>
+            <feMergeNode in="innerShadow"/>
+        </feMerge>
     </filter>
 </defs>
 
 <!-- 透明背景 -->
 <rect width="1920" height="1080" fill="none"/>
 
-<!-- 相框主体 -->
+<!-- 相框主体 - 精确对齐画作950×724 -->
 <g id="PhotoFrame" filter="url(#frameShadow)">
-    <!-- 外框 -->
-    <rect x="385" y="78" width="1150" height="924"
-          fill="url(#woodGradient)"
-          stroke="#654321"
-          stroke-width="3"
-          rx="8" ry="8"/>
 
-    <!-- 金色内边框 - 外层 -->
-    <rect x="425" y="118" width="1070" height="844"
+    <!-- 最外层木框 (80px宽度) -->
+    <rect x="325" y="18" width="1270" height="1044"
+          fill="url(#woodGradient)"
+          stroke="url(#darkWoodGradient)"
+          stroke-width="4"
+          rx="6" ry="6"/>
+
+    <!-- 第一层金边装饰 (15px) -->
+    <rect x="405" y="98" width="1110" height="884"
           fill="url(#goldGradient)"
-          rx="4" ry="4"
-          filter="url(#emboss)"/>
-
-    <!-- 金色内边框 - 内层（立体效果） -->
-    <rect x="435" y="128" width="1050" height="824"
-          fill="#D4AF37"
-          rx="3" ry="3"/>
-
-    <!-- 木质中框 -->
-    <rect x="445" y="138" width="1030" height="804"
-          fill="url(#woodGradient)"
           rx="4" ry="4"/>
 
-    <!-- 最内层金边 -->
-    <rect x="475" y="168" width="970" height="744"
-          fill="none"
-          stroke="url(#goldGradient)"
-          stroke-width="6"
+    <!-- 第二层木框 (25px) -->
+    <rect x="420" y="113" width="1080" height="854"
+          fill="url(#woodGradient)"
+          rx="3" ry="3"/>
+
+    <!-- 第三层金边装饰 (10px) -->
+    <rect x="445" y="138" width="1030" height="804"
+          fill="url(#goldGradient)"
           rx="2" ry="2"/>
 
-    <!-- 装饰角 - 左上 -->
-    <g transform="translate(395, 88)">
-        <circle cx="20" cy="20" r="12" fill="#D4AF37"/>
-        <circle cx="20" cy="20" r="8" fill="#8B4513"/>
-        <circle cx="20" cy="20" r="4" fill="#D4AF37"/>
+    <!-- 内层木框 (20px) - 紧贴画作边缘 -->
+    <rect x="455" y="148" width="1010" height="784"
+          fill="url(#darkWoodGradient)"
+          filter="url(#innerShadow)"
+          rx="2" ry="2"/>
+
+    <!-- 画作开口 - 精确950×724 -->
+    <!-- 左边：485, 上边：178, 右边：1435, 下边：902 -->
+    <!-- 内框阴影效果 -->
+    <rect x="485" y="178" width="950" height="724"
+          fill="none"
+          stroke="rgba(0,0,0,0.3)"
+          stroke-width="2"/>
+
+    <!-- 四个角的装饰 -->
+    <!-- 左上角 -->
+    <g transform="translate(335, 28)">
+        <circle cx="15" cy="15" r="15" fill="url(#goldGradient)"/>
+        <circle cx="15" cy="15" r="10" fill="url(#woodGradient)"/>
+        <circle cx="15" cy="15" r="5" fill="url(#goldGradient)"/>
     </g>
 
-    <!-- 装饰角 - 右上 -->
-    <g transform="translate(1495, 88)">
-        <circle cx="20" cy="20" r="12" fill="#D4AF37"/>
-        <circle cx="20" cy="20" r="8" fill="#8B4513"/>
-        <circle cx="20" cy="20" r="4" fill="#D4AF37"/>
+    <!-- 右上角 -->
+    <g transform="translate(1560, 28)">
+        <circle cx="15" cy="15" r="15" fill="url(#goldGradient)"/>
+        <circle cx="15" cy="15" r="10" fill="url(#woodGradient)"/>
+        <circle cx="15" cy="15" r="5" fill="url(#goldGradient)"/>
     </g>
 
-    <!-- 装饰角 - 左下 -->
-    <g transform="translate(395, 972)">
-        <circle cx="20" cy="20" r="12" fill="#D4AF37"/>
-        <circle cx="20" cy="20" r="8" fill="#8B4513"/>
-        <circle cx="20" cy="20" r="4" fill="#D4AF37"/>
+    <!-- 左下角 -->
+    <g transform="translate(335, 1017)">
+        <circle cx="15" cy="15" r="15" fill="url(#goldGradient)"/>
+        <circle cx="15" cy="15" r="10" fill="url(#woodGradient)"/>
+        <circle cx="15" cy="15" r="5" fill="url(#goldGradient)"/>
     </g>
 
-    <!-- 装饰角 - 右下 -->
-    <g transform="translate(1495, 972)">
-        <circle cx="20" cy="20" r="12" fill="#D4AF37"/>
-        <circle cx="20" cy="20" r="8" fill="#8B4513"/>
-        <circle cx="20" cy="20" r="4" fill="#D4AF37"/>
+    <!-- 右下角 -->
+    <g transform="translate(1560, 1017)">
+        <circle cx="15" cy="15" r="15" fill="url(#goldGradient)"/>
+        <circle cx="15" cy="15" r="10" fill="url(#woodGradient)"/>
+        <circle cx="15" cy="15" r="5" fill="url(#goldGradient)"/>
     </g>
 
-    <!-- 顶部装饰线 -->
-    <line x1="450" y1="103" x2="1470" y2="103"
-          stroke="#D4AF37"
-          stroke-width="2"
-          stroke-linecap="round"/>
+    <!-- 顶部中央装饰 -->
+    <rect x="935" y="28" width="50" height="60"
+          fill="url(#goldGradient)"
+          rx="5" ry="5"/>
+    <text x="960" y="65"
+          font-family="serif"
+          font-size="24"
+          font-weight="bold"
+          fill="#654321"
+          text-anchor="middle">ART</text>
 
-    <!-- 底部装饰线 -->
-    <line x1="450" y1="977" x2="1470" y2="977"
-          stroke="#D4AF37"
-          stroke-width="2"
-          stroke-linecap="round"/>
+    <!-- 底部中央装饰 -->
+    <rect x="935" y="992" width="50" height="60"
+          fill="url(#goldGradient)"
+          rx="5" ry="5"/>
+    <circle cx="960" cy="1022" r="15" fill="url(#woodGradient)"/>
+    <circle cx="960" cy="1022" r="8" fill="url(#goldGradient)"/>
 
-    <!-- 左侧装饰线 -->
-    <line x1="410" y1="123" x2="410" y2="957"
-          stroke="#D4AF37"
-          stroke-width="2"
-          stroke-linecap="round"/>
-
-    <!-- 右侧装饰线 -->
-    <line x1="1510" y1="123" x2="1510" y2="957"
-          stroke="#D4AF37"
-          stroke-width="2"
-          stroke-linecap="round"/>
 </g>
 
-<!-- 画作放置区域标记（用于对齐，可以设为透明） -->
-<rect id="ArtworkArea" x="485" y="178" width="950" height="724" fill="none" opacity="0"/>
+<!-- 画作区域参考标记（不可见） -->
+<rect id="ArtworkArea" x="485" y="178" width="950" height="724"
+      fill="none" stroke="none" opacity="0"/>
 
-<!-- 中心点标记（调试用，可以隐藏） -->
-<circle id="CenterPoint" cx="960" cy="540" r="5" fill="red" opacity="0"/>
+<!-- 中心点标记（不可见） -->
+<circle id="CenterPoint" cx="960" cy="540" r="3" fill="red" opacity="0"/>
 
 </svg>
