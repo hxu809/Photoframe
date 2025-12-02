@@ -123,8 +123,8 @@
             transition: opacity 0.3s;
         }
 
-        /* Ukiyoe特殊提示 */
-        .ukiyoe-hint {
+        /* 画作提示 */
+        .artwork-hint {
             display: none;
             position: fixed;
             bottom: 70px;
@@ -138,7 +138,7 @@
             animation: pulse 2s infinite;
         }
 
-        .ukiyoe-hint.show {
+        .artwork-hint.show {
             display: block;
             opacity: 1;
         }
@@ -201,7 +201,7 @@
     </div>
 
     <div class="hint">↕ 滚动鼠标滚轮切换画作 | ← → 方向键切换</div>
-    <div class="ukiyoe-hint" id="ukiyoeHint">🌊 点击画作或按 Enter 进入动态浮世绘 🌊</div>
+    <div class="artwork-hint" id="artworkHint">🎨 点击画作或按 Enter 进入动态效果 🎨</div>
 
     <script>
         let currentIndex = 0;
@@ -213,32 +213,43 @@
         // 获取元素
         const artworkScroll = document.getElementById('artworkScroll');
         const artworkContainer = document.querySelector('.artwork-container');
-        const ukiyoeHint = document.getElementById('ukiyoeHint');
+        const artworkHint = document.getElementById('artworkHint');
         const container = document.querySelector('.container');
         const TOTAL_ARTWORKS = 4;
-        const UKIYOE_INDEX = 2; // Ukiyoe在数组中的索引
 
-        // 检查并更新Ukiyoe提示
-        function updateUkiyoeHint() {
-            if (currentIndex === UKIYOE_INDEX) {
-                ukiyoeHint.classList.add('show');
-                artworkContainer.classList.add('clickable');
-            } else {
-                ukiyoeHint.classList.remove('show');
-                artworkContainer.classList.remove('clickable');
-            }
+        // 画作索引常量
+        const GUOHUA_INDEX = 0;
+        const STARRYSKY_INDEX = 1;
+        const UKIYOE_INDEX = 2;
+        const PICASSO_INDEX = 3;
+
+        // 画作信息配置
+        const artworkInfo = {
+            0: { name: '国画', hint: '🖌️ 点击画作或按 Enter 进入动态国画 🖌️', url: 'guohua.html' },
+            1: { name: '星空', hint: '⭐ 点击画作或按 Enter 进入动态星空 ⭐', url: 'starrysky.html' },
+            2: { name: '浮世绘', hint: '🌊 点击画作或按 Enter 进入动态浮世绘 🌊', url: 'ukiyoe.html' },
+            3: { name: '毕加索', hint: '🎨 点击画作或按 Enter 进入动态毕加索 🎨', url: 'picasso.html' }
+        };
+
+        // 检查并更新画作提示
+        function updateArtworkHint() {
+            const info = artworkInfo[currentIndex];
+            artworkHint.textContent = info.hint;
+            artworkHint.classList.add('show');
+            artworkContainer.classList.add('clickable');
         }
 
-        // 跳转到动态浮世绘页面
-        function goToDynamicUkiyoe() {
-            if (currentIndex !== UKIYOE_INDEX) return;
+        // 跳转到动态页面
+        function goToDynamicArtwork() {
+            const info = artworkInfo[currentIndex];
+            if (!info) return;
 
             // 添加放大渐变动画
             container.classList.add('zoom-transition');
 
             // 动画完成后跳转
             setTimeout(() => {
-                window.location.href = 'ukiyoe.html';
+                window.location.href = info.url;
             }, 1200);
         }
 
@@ -256,8 +267,8 @@
             // 更新当前索引
             currentIndex = index;
 
-            // 更新Ukiyoe提示
-            updateUkiyoeHint();
+            // 更新画作提示
+            updateArtworkHint();
 
             // 解除防抖（与CSS transition时间匹配）
             setTimeout(() => {
@@ -301,17 +312,18 @@
                 const prevIndex = (currentIndex - 1 + TOTAL_ARTWORKS) % TOTAL_ARTWORKS;
                 scrollToArtwork(prevIndex);
             } else if (e.key === 'Enter') {
-                // 按Enter键在Ukiyoe时跳转到动态页面
-                goToDynamicUkiyoe();
+                // 按Enter键跳转到动态页面
+                goToDynamicArtwork();
             }
         });
 
-        // 点击画作容器跳转（仅在Ukiyoe时生效）
+        // 点击画作容器跳转到动态页面
         artworkContainer.addEventListener('click', () => {
-            if (currentIndex === UKIYOE_INDEX) {
-                goToDynamicUkiyoe();
-            }
+            goToDynamicArtwork();
         });
+
+        // 初始化显示第一个画作的提示
+        updateArtworkHint();
     </script>
 </body>
 </html>

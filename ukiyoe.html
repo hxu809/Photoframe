@@ -186,6 +186,30 @@
             font-family: 'STKaiti', 'KaiTi', serif;
             letter-spacing: 8px;
         }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid #d4a574;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'STKaiti', 'KaiTi', serif;
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: rgba(212, 165, 116, 0.4);
+            box-shadow: 0 0 20px rgba(212, 165, 116, 0.6);
+            transform: translateX(-50%) scale(1.05);
+        }
     </style>
 </head>
 <body>
@@ -193,6 +217,8 @@
         <div class="svg-container" id="svgContainer"></div>
         <div class="title">神奈川冲浪里</div>
     </div>
+
+    <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
 
     <script>
         // 加载并解析SVG

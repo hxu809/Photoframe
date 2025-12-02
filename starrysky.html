@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态星空 - Dynamic Starry Sky</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #0a1628;
+            overflow: hidden;
+        }
+
+        .canvas {
+            position: relative;
+            width: 1920px;
+            height: 1080px;
+        }
+
+        /* SVG 容器 */
+        .svg-container {
+            position: relative;
+            width: 1920px;
+            height: 1080px;
+            animation: starGlow 6s ease-in-out infinite;
+        }
+
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 星光闪烁效果 */
+        @keyframes starGlow {
+            0%, 100% {
+                filter: brightness(1) contrast(1);
+            }
+            50% {
+                filter: brightness(1.2) contrast(1.1);
+            }
+        }
+
+        /* 旋转效果 */
+        .svg-container svg {
+            animation: slowRotate 120s linear infinite, starGlow 6s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes slowRotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 标题 */
+        .title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ffd700;
+            font-size: 42px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
+            font-family: 'Georgia', serif;
+            letter-spacing: 10px;
+            animation: titleTwinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes titleTwinkle {
+            0%, 100% {
+                opacity: 0.8;
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
+            }
+            50% {
+                opacity: 1;
+                text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.8);
+            }
+        }
+
+        /* 返回按钮 */
+        .back-button {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 30px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            border-radius: 25px;
+            color: #ffd700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            transform: translateX(-50%) scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="canvas">
+        <div class="svg-container" id="svgContainer"></div>
+        <div class="title">Starry Night</div>
+    </div>
+
+    <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
+
+    <script>
+        // 加载并解析SVG
+        fetch('DynamicStarrysky.svg')
+            .then(response => response.text())
+            .then(svgText => {
+                document.getElementById('svgContainer').innerHTML = svgText;
+            })
+            .catch(error => {
+                console.error('加载SVG失败:', error);
+            });
+    </script>
+</body>
+</html>
