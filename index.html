@@ -190,11 +190,14 @@
                 <div class="artwork" data-index="2" style="top: 1448px;">
                     <img src="Ukiyoe.svg" alt="浮世绘">
                 </div>
+                <div class="artwork" data-index="3" style="top: 2172px;">
+                    <img src="Picasso.svg" alt="毕加索">
+                </div>
             </div>
         </div>
 
         <!-- 相框 SVG - 覆盖在画作上方 -->
-        <object id="photoframe" data="Photoframe.svg?v=2" type="image/svg+xml"></object>
+        <object id="photoframe" data="Photoframe.svg?v=3" type="image/svg+xml"></object>
     </div>
 
     <div class="hint">↕ 滚动鼠标滚轮切换画作 | ← → 方向键切换</div>
@@ -212,7 +215,7 @@
         const artworkContainer = document.querySelector('.artwork-container');
         const ukiyoeHint = document.getElementById('ukiyoeHint');
         const container = document.querySelector('.container');
-        const TOTAL_ARTWORKS = 3;
+        const TOTAL_ARTWORKS = 4;
         const UKIYOE_INDEX = 2; // Ukiyoe在数组中的索引
 
         // 检查并更新Ukiyoe提示
