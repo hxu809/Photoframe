@@ -65,12 +65,12 @@
             }
         }
 
-        /* 画作容器 - 在相框背后，对齐画框开口，留出边距 */
+        /* 画作容器 - 完全对齐相框开口 */
         .artwork-container {
             position: absolute;
-            left: 485px;
+            left: 395px;
             top: 178px;
-            width: 950px;
+            width: 1130px;
             height: 724px;
             overflow: hidden;
             z-index: 1;
@@ -95,7 +95,7 @@
         .artwork img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: fill;
             display: block;
         }
 
