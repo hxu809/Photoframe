@@ -65,13 +65,13 @@
             }
         }
 
-        /* 画作容器 - 在相框背后，向左调整以居中 */
+        /* 画作容器 - 在相框背后，对齐扩大的开口 */
         .artwork-container {
             position: absolute;
-            left: 470px;
-            top: 163px;
-            width: 980px;
-            height: 754px;
+            left: 300px;
+            top: 150px;
+            width: 1320px;
+            height: 780px;
             overflow: hidden;
             z-index: 1;
         }
@@ -185,20 +185,20 @@
                 <div class="artwork" data-index="0" style="top: 0;">
                     <img src="Guohua.svg" alt="国画">
                 </div>
-                <div class="artwork" data-index="1" style="top: 754px;">
+                <div class="artwork" data-index="1" style="top: 780px;">
                     <img src="Starrysky.svg" alt="星空">
                 </div>
-                <div class="artwork" data-index="2" style="top: 1508px;">
+                <div class="artwork" data-index="2" style="top: 1560px;">
                     <img src="Ukiyoe.svg" alt="浮世绘">
                 </div>
-                <div class="artwork" data-index="3" style="top: 2262px;">
+                <div class="artwork" data-index="3" style="top: 2340px;">
                     <img src="Picasso.svg" alt="毕加索">
                 </div>
             </div>
         </div>
 
         <!-- 相框 SVG - 覆盖在画作上方 -->
-        <object id="photoframe" data="Photoframe.svg?v=7" type="image/svg+xml"></object>
+        <object id="photoframe" data="Photoframe.svg?v=8" type="image/svg+xml"></object>
     </div>
 
     <div class="hint">↕ 滚动鼠标滚轮切换画作 | ← → 方向键切换</div>
@@ -208,7 +208,7 @@
         let currentIndex = 0;
         let isScrolling = false;
         let lastScrollTime = 0;
-        const ARTWORK_HEIGHT = 754; // 画作高度（与内金边区域一致）
+        const ARTWORK_HEIGHT = 780; // 画作高度（与相框开口一致）
         const SCROLL_COOLDOWN = 600; // 滚动冷却时间（毫秒）- 降低到600ms使响应更灵敏
 
         // 获取元素
