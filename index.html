@@ -68,10 +68,10 @@
         /* 画作容器 - 在相框背后，向左调整以居中 */
         .artwork-container {
             position: absolute;
-            left: 395px;
-            top: 178px;
-            width: 950px;
-            height: 724px;
+            left: 470px;
+            top: 163px;
+            width: 980px;
+            height: 754px;
             overflow: hidden;
             z-index: 1;
         }
@@ -184,13 +184,13 @@
                 <div class="artwork" data-index="0" style="top: 0;">
                     <img src="Guohua.svg" alt="国画">
                 </div>
-                <div class="artwork" data-index="1" style="top: 724px;">
+                <div class="artwork" data-index="1" style="top: 754px;">
                     <img src="Starrysky.svg" alt="星空">
                 </div>
-                <div class="artwork" data-index="2" style="top: 1448px;">
+                <div class="artwork" data-index="2" style="top: 1508px;">
                     <img src="Ukiyoe.svg" alt="浮世绘">
                 </div>
-                <div class="artwork" data-index="3" style="top: 2172px;">
+                <div class="artwork" data-index="3" style="top: 2262px;">
                     <img src="Picasso.svg" alt="毕加索">
                 </div>
             </div>
@@ -207,7 +207,7 @@
         let currentIndex = 0;
         let isScrolling = false;
         let lastScrollTime = 0;
-        const ARTWORK_HEIGHT = 724; // 画作高度（与Bigframe内框一致）
+        const ARTWORK_HEIGHT = 754; // 画作高度（与内金边区域一致）
         const SCROLL_COOLDOWN = 600; // 滚动冷却时间（毫秒）- 降低到600ms使响应更灵敏
 
         // 获取元素
