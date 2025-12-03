@@ -54,17 +54,17 @@
 
     <!-- 主框架路径 - 更宽的边框 (120px宽度) -->
     <!-- 外边界: 265, 0, 1390×1080 -->
-    <!-- 内边界: 300, 150, 1320×780 -->
+    <!-- 内边界: 395, 178, 1130×724 - 正好容纳950×724画作 -->
     <path d="
         M 265 0
         L 1655 0
         L 1655 1080
         L 265 1080
         Z
-        M 300 150
-        L 300 930
-        L 1620 930
-        L 1620 150
+        M 395 178
+        L 395 902
+        L 1525 902
+        L 1525 178
         Z
     " fill="url(#darkWood)" fill-rule="evenodd" stroke="#2c1810" stroke-width="4"/>
 
@@ -105,7 +105,7 @@
     <rect x="1450" y="143" width="20" height="794" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
 
     <!-- 画作开口内阴影 -->
-    <rect x="300" y="150" width="1320" height="780"
+    <rect x="395" y="178" width="1130" height="724"
           fill="none"
           stroke="rgba(0,0,0,0.5)"
           stroke-width="2"/>
@@ -172,6 +172,6 @@
 </g>
 
 <!-- 画作区域标记（不可见） -->
-<rect id="ArtworkArea" x="300" y="150" width="1320" height="780" fill="none" opacity="0"/>
+<rect id="ArtworkArea" x="395" y="178" width="1130" height="724" fill="none" opacity="0"/>
 
 </svg>
