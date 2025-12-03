@@ -93,16 +93,16 @@
     <rect x="1535" y="70" width="50" height="940" fill="url(#lightWood)" rx="2"/>
 
     <!-- 内层金边 - 顶部 -->
-    <rect x="450" y="143" width="1020" height="20" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
+    <rect x="380" y="163" width="1160" height="10" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
 
     <!-- 内层金边 - 底部 -->
-    <rect x="450" y="917" width="1020" height="20" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
+    <rect x="380" y="907" width="1160" height="10" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
 
     <!-- 内层金边 - 左侧 -->
-    <rect x="450" y="143" width="20" height="794" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
+    <rect x="380" y="163" width="10" height="754" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
 
     <!-- 内层金边 - 右侧 -->
-    <rect x="1450" y="143" width="20" height="794" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
+    <rect x="1530" y="163" width="10" height="754" fill="url(#gold)" rx="2" filter="url(#bevel)"/>
 
     <!-- 画作开口内阴影 -->
     <rect x="395" y="178" width="1130" height="724"
