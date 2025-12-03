@@ -68,52 +68,12 @@
 
         /* 标题 */
         .title {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%) skew(-5deg);
-            color: #ff6b6b;
-            font-size: 48px;
-            font-weight: bold;
-            text-shadow: 3px 3px 0 #4ecdc4, 6px 6px 0 #ffe66d;
-            font-family: 'Impact', sans-serif;
-            letter-spacing: 8px;
-            animation: titleCubism 4s ease-in-out infinite;
-        }
-
-        @keyframes titleCubism {
-            0%, 100% {
-                transform: translateX(-50%) skew(-5deg);
-                text-shadow: 3px 3px 0 #4ecdc4, 6px 6px 0 #ffe66d;
-            }
-            50% {
-                transform: translateX(-50%) skew(5deg);
-                text-shadow: -3px 3px 0 #4ecdc4, -6px 6px 0 #ffe66d;
-            }
+            display: none;
         }
 
         /* 返回按钮 */
         .back-button {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%) skew(-3deg);
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
-            border: 3px solid #ffe66d;
-            border-radius: 0;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-            box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .back-button:hover {
-            transform: translateX(-50%) skew(3deg) scale(1.05);
-            box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.4);
+            display: none;
         }
     </style>
 </head>

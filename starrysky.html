@@ -69,51 +69,12 @@
 
         /* 标题 */
         .title {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #ffd700;
-            font-size: 42px;
-            font-weight: bold;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
-            font-family: 'Georgia', serif;
-            letter-spacing: 10px;
-            animation: titleTwinkle 3s ease-in-out infinite;
-        }
-
-        @keyframes titleTwinkle {
-            0%, 100% {
-                opacity: 0.8;
-                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5);
-            }
-            50% {
-                opacity: 1;
-                text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.8);
-            }
+            display: none;
         }
 
         /* 返回按钮 */
         .back-button {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 30px;
-            background: rgba(255, 215, 0, 0.2);
-            border: 2px solid #ffd700;
-            border-radius: 25px;
-            color: #ffd700;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-
-        .back-button:hover {
-            background: rgba(255, 215, 0, 0.4);
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-            transform: translateX(-50%) scale(1.05);
+            display: none;
         }
     </style>
 </head>
