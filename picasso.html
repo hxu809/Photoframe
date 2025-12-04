@@ -75,6 +75,11 @@
         .back-button {
             display: none;
         }
+
+        /* 眼睛平滑移动效果 */
+        #Lefteye1, #Righteye1 {
+            transition: transform 0.1s ease-out;
+        }
     </style>
 </head>
 <body>
@@ -91,6 +96,76 @@
             .then(response => response.text())
             .then(svgText => {
                 document.getElementById('svgContainer').innerHTML = svgText;
+
+                // SVG加载完成后，添加眼睛跟随鼠标移动的功能
+                setTimeout(() => {
+                    const leftEye = document.getElementById('Lefteye1');
+                    const rightEye = document.getElementById('Righteye1');
+
+                    if (leftEye && rightEye) {
+                        // 眼睛的原始位置和大小
+                        const leftEyeData = {
+                            x: 696,
+                            y: 202,
+                            width: 163,
+                            height: 91,
+                            centerX: 696 + 163/2,
+                            centerY: 202 + 91/2
+                        };
+
+                        const rightEyeData = {
+                            x: 1086,
+                            y: 211,
+                            width: 99,
+                            height: 82,
+                            centerX: 1086 + 99/2,
+                            centerY: 211 + 82/2
+                        };
+
+                        // 眼睛可移动的最大距离（在眼眶范围内）
+                        const maxMoveX = 15;  // 水平最大移动距离
+                        const maxMoveY = 10;  // 垂直最大移动距离
+
+                        // 监听鼠标移动
+                        document.addEventListener('mousemove', (e) => {
+                            // 获取鼠标相对于页面的位置
+                            const mouseX = e.clientX;
+                            const mouseY = e.clientY;
+
+                            // 计算左眼移动
+                            const leftDeltaX = mouseX - leftEyeData.centerX;
+                            const leftDeltaY = mouseY - leftEyeData.centerY;
+                            const leftDistance = Math.sqrt(leftDeltaX * leftDeltaX + leftDeltaY * leftDeltaY);
+
+                            let leftMoveX = (leftDeltaX / leftDistance) * maxMoveX;
+                            let leftMoveY = (leftDeltaY / leftDistance) * maxMoveY;
+
+                            // 限制移动范围
+                            if (leftDistance < 200) {
+                                leftMoveX = leftMoveX * (leftDistance / 200);
+                                leftMoveY = leftMoveY * (leftDistance / 200);
+                            }
+
+                            // 计算右眼移动
+                            const rightDeltaX = mouseX - rightEyeData.centerX;
+                            const rightDeltaY = mouseY - rightEyeData.centerY;
+                            const rightDistance = Math.sqrt(rightDeltaX * rightDeltaX + rightDeltaY * rightDeltaY);
+
+                            let rightMoveX = (rightDeltaX / rightDistance) * maxMoveX;
+                            let rightMoveY = (rightDeltaY / rightDistance) * maxMoveY;
+
+                            // 限制移动范围
+                            if (rightDistance < 200) {
+                                rightMoveX = rightMoveX * (rightDistance / 200);
+                                rightMoveY = rightMoveY * (rightDistance / 200);
+                            }
+
+                            // 应用变换
+                            leftEye.style.transform = `translate(${leftMoveX}px, ${leftMoveY}px)`;
+                            rightEye.style.transform = `translate(${rightMoveX}px, ${rightMoveY}px)`;
+                        });
+                    }
+                }, 100);
             })
             .catch(error => {
                 console.error('加载SVG失败:', error);
