@@ -515,16 +515,19 @@
 
             const labelTexture = new THREE.CanvasTexture(canvas);
 
-            const labelGeometry = new THREE.PlaneGeometry(1.5, 0.75);
+            // Make label larger and more visible
+            const labelGeometry = new THREE.PlaneGeometry(1.8, 1.2);
             const labelMaterial = new THREE.MeshBasicMaterial({
                 map: labelTexture,
                 side: THREE.DoubleSide,
                 transparent: false,
-                opacity: 1
+                opacity: 1,
+                depthTest: true,
+                depthWrite: true
             });
 
             labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
-            labelMesh.position.set(0, 2.15, 0);
+            labelMesh.position.set(0, 2.12, 0);  // Slightly lower position
             labelMesh.rotation.x = -Math.PI / 2;
             labelMesh.userData.isLabel = true;
 
@@ -539,6 +542,8 @@
                 (texture) => {
                     console.log('label.svg loaded successfully');
                     labelMesh.material.map = texture;
+                    labelMesh.material.transparent = false;  // Ensure not transparent
+                    labelMesh.material.opacity = 1;
                     labelMesh.material.needsUpdate = true;
                 },
                 undefined,
@@ -549,6 +554,8 @@
                         (texture) => {
                             console.log('Label.svg loaded successfully');
                             labelMesh.material.map = texture;
+                            labelMesh.material.transparent = false;
+                            labelMesh.material.opacity = 1;
                             labelMesh.material.needsUpdate = true;
                         },
                         undefined,
