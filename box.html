@@ -15,7 +15,7 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background: #1a1a1a;
         }
 
@@ -49,7 +49,7 @@
             pointer-events: auto;
         }
 
-        /* This will be replaced with your actual photo frame page */
+        /* Load the actual photo frame page in an iframe */
         #frame-page iframe {
             width: 100%;
             height: 100%;
@@ -63,11 +63,12 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(5px);
         }
 
         #signature-overlay.active {
@@ -76,43 +77,60 @@
 
         #signature-dialog {
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 500px;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
             width: 90%;
-            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         #signature-dialog h2 {
-            margin: 0 0 20px 0;
+            margin: 0 0 25px 0;
             color: #333;
             text-align: center;
+            font-size: 28px;
+            font-weight: 600;
         }
 
         #signature-canvas {
             width: 100%;
-            height: 200px;
-            border: 2px solid #333;
-            border-radius: 8px;
+            height: 220px;
+            border: 3px solid #333;
+            border-radius: 12px;
             cursor: crosshair;
             background: white;
             touch-action: none;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         #signature-buttons {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 15px;
+            margin-top: 25px;
         }
 
         #signature-buttons button {
             flex: 1;
-            padding: 12px;
+            padding: 15px;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         #clear-btn {
@@ -122,6 +140,8 @@
 
         #clear-btn:hover {
             background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
         }
 
         #confirm-btn {
@@ -131,6 +151,12 @@
 
         #confirm-btn:hover {
             background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+        }
+
+        #signature-buttons button:active {
+            transform: translateY(0);
         }
 
         /* Loading indicator */
@@ -140,13 +166,45 @@
             left: 50%;
             transform: translate(-50%, -50%);
             color: white;
-            font-size: 18px;
+            font-size: 20px;
             z-index: 100;
+            text-align: center;
+        }
+
+        #loading::after {
+            content: '...';
+            animation: dots 1.5s steps(3, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            #signature-dialog {
+                padding: 30px 20px;
+            }
+
+            #signature-dialog h2 {
+                font-size: 24px;
+            }
+
+            #signature-canvas {
+                height: 180px;
+            }
+
+            #signature-buttons button {
+                font-size: 16px;
+                padding: 12px;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loading">Loading...</div>
+    <div id="loading">Loading 3D Scene</div>
 
     <!-- 3D Canvas Container -->
     <div id="canvas-container"></div>
@@ -159,7 +217,7 @@
     <!-- Signature overlay -->
     <div id="signature-overlay">
         <div id="signature-dialog">
-            <h2>Sign the Delivery</h2>
+            <h2>📝 Sign the Delivery</h2>
             <canvas id="signature-canvas"></canvas>
             <div id="signature-buttons">
                 <button id="clear-btn">Clear</button>
@@ -198,6 +256,9 @@
         let signatureCanvas, signatureCtx;
         let isDrawing = false;
 
+        // Animation ID for cleanup
+        let animationId;
+
         // ============================================
         // INITIALIZATION
         // ============================================
@@ -232,7 +293,7 @@
             controls.maxDistance = 20;
             controls.maxPolarAngle = Math.PI / 2;
 
-            // Setup raycaster
+            // Setup raycaster for click detection
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
 
@@ -258,14 +319,14 @@
         }
 
         // ============================================
-        // LIGHTING
+        // LIGHTING SETUP
         // ============================================
         function setupLights() {
-            // Ambient light
+            // Ambient light for overall brightness
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
             scene.add(ambientLight);
 
-            // Main directional light
+            // Main directional light (simulates sunlight)
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
             dirLight.position.set(5, 10, 5);
             dirLight.castShadow = true;
@@ -273,9 +334,11 @@
             dirLight.shadow.camera.right = 10;
             dirLight.shadow.camera.top = 10;
             dirLight.shadow.camera.bottom = -10;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
             scene.add(dirLight);
 
-            // Fill light
+            // Fill light from opposite side
             const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
             fillLight.position.set(-5, 5, -5);
             scene.add(fillLight);
@@ -294,7 +357,7 @@
             const flapSize = 0.9;
             const flapThickness = 0.05;
 
-            // Cardboard material
+            // Cardboard material with texture-like appearance
             const cardboardMaterial = new THREE.MeshStandardMaterial({
                 color: 0xc9a96e,
                 roughness: 0.9,
@@ -314,7 +377,7 @@
             bottom.receiveShadow = true;
             boxGroup.add(bottom);
 
-            // Front
+            // Front wall
             const front = new THREE.Mesh(
                 new THREE.BoxGeometry(boxSize, boxSize, flapThickness),
                 cardboardMaterial
@@ -324,7 +387,7 @@
             front.receiveShadow = true;
             boxGroup.add(front);
 
-            // Back
+            // Back wall
             const back = new THREE.Mesh(
                 new THREE.BoxGeometry(boxSize, boxSize, flapThickness),
                 cardboardMaterial
@@ -334,7 +397,7 @@
             back.receiveShadow = true;
             boxGroup.add(back);
 
-            // Left
+            // Left wall
             const left = new THREE.Mesh(
                 new THREE.BoxGeometry(flapThickness, boxSize, boxSize),
                 cardboardMaterial
@@ -344,7 +407,7 @@
             left.receiveShadow = true;
             boxGroup.add(left);
 
-            // Right
+            // Right wall
             const right = new THREE.Mesh(
                 new THREE.BoxGeometry(flapThickness, boxSize, boxSize),
                 cardboardMaterial
@@ -354,7 +417,7 @@
             right.receiveShadow = true;
             boxGroup.add(right);
 
-            // Create 4 top flaps (that can open)
+            // Create 4 top flaps (that can open by rotating)
             // Front flap
             const flapFront = new THREE.Mesh(
                 new THREE.BoxGeometry(boxSize, flapThickness, flapSize),
@@ -363,6 +426,7 @@
             flapFront.position.set(0, boxSize + flapThickness, flapSize / 2);
             flapFront.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
             flapFront.userData.axis = 'x';
+            flapFront.userData.direction = 1;
             flapFront.castShadow = true;
             boxGroup.add(flapFront);
             boxFlaps.push(flapFront);
@@ -375,6 +439,7 @@
             flapBack.position.set(0, boxSize + flapThickness, -flapSize / 2);
             flapBack.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
             flapBack.userData.axis = 'x';
+            flapBack.userData.direction = -1;
             flapBack.castShadow = true;
             boxGroup.add(flapBack);
             boxFlaps.push(flapBack);
@@ -387,6 +452,7 @@
             flapLeft.position.set(-flapSize / 2, boxSize + flapThickness, 0);
             flapLeft.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
             flapLeft.userData.axis = 'z';
+            flapLeft.userData.direction = -1;
             flapLeft.castShadow = true;
             boxGroup.add(flapLeft);
             boxFlaps.push(flapLeft);
@@ -399,6 +465,7 @@
             flapRight.position.set(flapSize / 2, boxSize + flapThickness, 0);
             flapRight.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
             flapRight.userData.axis = 'z';
+            flapRight.userData.direction = 1;
             flapRight.castShadow = true;
             boxGroup.add(flapRight);
             boxFlaps.push(flapRight);
@@ -418,27 +485,15 @@
             const labelTexture = textureLoader.load(
                 'Expresswaybill.svg',
                 // Success callback
-                undefined,
+                (texture) => {
+                    console.log('Label texture loaded successfully');
+                },
                 // Progress callback
                 undefined,
-                // Error callback - create a simple fallback texture
-                () => {
+                // Error callback - create a fallback texture
+                (error) => {
                     console.warn('Expresswaybill.svg not found, using fallback');
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 512;
-                    canvas.height = 256;
-                    const ctx = canvas.getContext('2d');
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillRect(0, 0, 512, 256);
-                    ctx.fillStyle = '#333333';
-                    ctx.font = 'bold 48px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText('EXPRESS WAYBILL', 256, 100);
-                    ctx.font = '24px Arial';
-                    ctx.fillText('Click to sign', 256, 150);
-                    const texture = new THREE.CanvasTexture(canvas);
-                    labelMesh.material.map = texture;
-                    labelMesh.material.needsUpdate = true;
+                    createFallbackLabel();
                 }
             );
 
@@ -451,10 +506,49 @@
             });
 
             labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
-            labelMesh.position.set(0, 2.1, 0);
+            labelMesh.position.set(0, 2.15, 0);
             labelMesh.rotation.x = -Math.PI / 2;
             labelMesh.userData.isLabel = true;
             scene.add(labelMesh);
+        }
+
+        // Create fallback label if image not found
+        function createFallbackLabel() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, 512, 256);
+
+            // Border
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(10, 10, 492, 236);
+
+            // Title
+            ctx.fillStyle = '#333333';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('EXPRESS WAYBILL', 256, 90);
+
+            // Subtitle
+            ctx.font = '24px Arial';
+            ctx.fillText('Click to sign for delivery', 256, 140);
+
+            // Barcode simulation
+            ctx.fillStyle = '#000000';
+            for (let i = 0; i < 20; i++) {
+                const x = 100 + i * 15;
+                const height = Math.random() * 40 + 20;
+                ctx.fillRect(x, 180, Math.random() * 8 + 2, height);
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            labelMesh.material.map = texture;
+            labelMesh.material.needsUpdate = true;
         }
 
         // ============================================
@@ -484,8 +578,9 @@
             signatureCanvas.height = rect.height * window.devicePixelRatio;
             signatureCtx = signatureCanvas.getContext('2d');
             signatureCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
-            signatureCtx.lineWidth = 2;
+            signatureCtx.lineWidth = 3;
             signatureCtx.lineCap = 'round';
+            signatureCtx.lineJoin = 'round';
             signatureCtx.strokeStyle = '#000';
 
             // Clear button
@@ -499,10 +594,13 @@
                 tearOffLabel();
             });
 
-            // Drawing on signature canvas
+            // Drawing on signature canvas (mouse)
             signatureCanvas.addEventListener('mousedown', startSignature);
             signatureCanvas.addEventListener('mousemove', drawSignature);
             signatureCanvas.addEventListener('mouseup', endSignature);
+            signatureCanvas.addEventListener('mouseleave', endSignature);
+
+            // Drawing on signature canvas (touch)
             signatureCanvas.addEventListener('touchstart', startSignature);
             signatureCanvas.addEventListener('touchmove', drawSignature);
             signatureCanvas.addEventListener('touchend', endSignature);
@@ -599,17 +697,17 @@
         }
 
         // ============================================
-        // CLICK HANDLING
+        // CLICK HANDLING & RAYCASTING
         // ============================================
         function handleClick(x, y) {
             // Don't handle clicks if already transitioned
             if (state === "transitioned") return;
 
-            // Convert to normalized device coordinates
+            // Convert to normalized device coordinates (-1 to +1)
             mouse.x = (x / window.innerWidth) * 2 - 1;
             mouse.y = -(y / window.innerHeight) * 2 + 1;
 
-            // Raycast
+            // Raycast to find intersected objects
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(scene.children, true);
 
@@ -660,7 +758,7 @@
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
 
-                // Easing function
+                // Easing function (ease-out cubic)
                 const eased = 1 - Math.pow(1 - progress, 3);
 
                 // Move up and to the side
@@ -668,7 +766,7 @@
                 labelMesh.position.y = startPos.y + eased * 2;
                 labelMesh.position.z = startPos.z + eased * 1;
 
-                // Random jitter
+                // Random jitter/shake
                 const jitter = Math.sin(elapsed * 0.05) * 0.1 * (1 - progress);
                 labelMesh.rotation.x = startRot.x + jitter;
                 labelMesh.rotation.y = startRot.y + eased * Math.PI * 2 + jitter;
@@ -704,10 +802,12 @@
                 // Shake intensity decreases over time
                 const intensity = (1 - progress) * 0.1;
 
-                // Random offsets
+                // Random offsets for position
                 const offsetX = (Math.random() - 0.5) * intensity;
-                const offsetY = (Math.random() - 0.5) * intensity;
+                const offsetY = (Math.random() - 0.5) * intensity * 0.5;
                 const offsetZ = (Math.random() - 0.5) * intensity;
+
+                // Random rotations
                 const rotX = (Math.random() - 0.5) * intensity;
                 const rotZ = (Math.random() - 0.5) * intensity;
 
@@ -732,6 +832,7 @@
             }
 
             animateShake();
+            // TODO: Add cardboard rattle sound effect here
         }
 
         // ============================================
@@ -744,6 +845,11 @@
                 // Just shake
                 state = "boxShaking";
                 shakeBox();
+                setTimeout(() => {
+                    if (state === "boxShaking") {
+                        state = "labelRemoved";
+                    }
+                }, 300);
             } else {
                 // Open the box
                 state = "boxOpened";
@@ -752,7 +858,7 @@
         }
 
         // ============================================
-        // BOX OPEN ANIMATION
+        // BOX OPEN ANIMATION WITH GOLDEN GLOW
         // ============================================
         function openBox() {
             const duration = 2000; // ms
@@ -763,49 +869,38 @@
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
 
-                // Easing function
+                // Easing function (ease-out cubic)
                 const eased = 1 - Math.pow(1 - progress, 3);
 
-                // Open flaps (rotate around pivot)
+                // Open flaps (rotate around pivot edges)
                 boxFlaps.forEach((flap, index) => {
                     const pivot = flap.userData.pivot;
                     const axis = flap.userData.axis;
+                    const direction = flap.userData.direction;
 
-                    // Calculate rotation angle
-                    const angle = eased * Math.PI / 2; // 90 degrees
+                    // Calculate rotation angle (90 degrees)
+                    const angle = eased * Math.PI / 2;
 
                     // Reset position to pivot
                     flap.position.copy(pivot);
 
-                    // Apply rotation around pivot
+                    // Apply rotation around pivot based on axis
                     if (axis === 'x') {
-                        if (index === 0) { // Front flap
-                            flap.rotation.x = angle;
-                            flap.position.z += Math.sin(angle) * 0.45;
-                            flap.position.y -= (1 - Math.cos(angle)) * 0.45;
-                        } else { // Back flap
-                            flap.rotation.x = -angle;
-                            flap.position.z -= Math.sin(angle) * 0.45;
-                            flap.position.y -= (1 - Math.cos(angle)) * 0.45;
-                        }
+                        flap.rotation.x = direction * angle;
+                        flap.position.z += direction * Math.sin(angle) * 0.45;
+                        flap.position.y -= (1 - Math.cos(angle)) * 0.45;
                     } else { // axis === 'z'
-                        if (index === 2) { // Left flap
-                            flap.rotation.z = -angle;
-                            flap.position.x -= Math.sin(angle) * 0.45;
-                            flap.position.y -= (1 - Math.cos(angle)) * 0.45;
-                        } else { // Right flap
-                            flap.rotation.z = angle;
-                            flap.position.x += Math.sin(angle) * 0.45;
-                            flap.position.y -= (1 - Math.cos(angle)) * 0.45;
-                        }
+                        flap.rotation.z = direction * angle;
+                        flap.position.x += direction * Math.sin(angle) * 0.45;
+                        flap.position.y -= (1 - Math.cos(angle)) * 0.45;
                     }
                 });
 
-                // Activate golden light
+                // Activate golden light (intensity ramps up)
                 const lightIntensity = eased * 5;
                 insideLight.intensity = lightIntensity;
 
-                // Create particles
+                // Create particles after box starts opening
                 if (progress > 0.3 && Math.random() < 0.3) {
                     createParticle();
                 }
@@ -813,7 +908,7 @@
                 if (progress < 1) {
                     requestAnimationFrame(animateOpen);
                 } else {
-                    // Start pulsing light
+                    // Start pulsing light effect
                     pulseInterval = setInterval(() => {
                         const time = Date.now() * 0.001;
                         insideLight.intensity = 3 + Math.sin(time * 2) * 0.5;
@@ -849,12 +944,14 @@
                 framePage.classList.add('visible');
 
                 // Stop rendering 3D scene (performance optimization)
-                cancelAnimationFrame(animationId);
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
             }, 1500); // Match CSS transition duration
         }
 
         // ============================================
-        // PARTICLE SYSTEM
+        // PARTICLE SYSTEM (Golden magic dust)
         // ============================================
         function createParticle() {
             const geometry = new THREE.SphereGeometry(0.05, 8, 8);
@@ -865,14 +962,14 @@
             });
             const particle = new THREE.Mesh(geometry, material);
 
-            // Start position (inside box)
+            // Start position (inside box, randomly distributed)
             particle.position.set(
-                (Math.random() - 0.5) * 0.5,
-                1.5,
-                (Math.random() - 0.5) * 0.5
+                (Math.random() - 0.5) * 0.8,
+                1.2 + Math.random() * 0.3,
+                (Math.random() - 0.5) * 0.8
             );
 
-            // Velocity
+            // Velocity (upward with slight random drift)
             particle.userData.velocity = {
                 x: (Math.random() - 0.5) * 0.02,
                 y: 0.02 + Math.random() * 0.02,
@@ -894,13 +991,15 @@
                 particle.position.y += particle.userData.velocity.y;
                 particle.position.z += particle.userData.velocity.z;
 
-                // Update life
+                // Update life and opacity
                 particle.userData.life -= 0.01;
                 particle.material.opacity = particle.userData.life;
 
                 // Remove dead particles
                 if (particle.userData.life <= 0) {
                     scene.remove(particle);
+                    particle.geometry.dispose();
+                    particle.material.dispose();
                     particles.splice(i, 1);
                 }
             }
@@ -909,22 +1008,21 @@
         // ============================================
         // ANIMATION LOOP
         // ============================================
-        let animationId;
         function animate() {
             animationId = requestAnimationFrame(animate);
 
-            // Update controls
+            // Update controls (damping)
             controls.update();
 
             // Update particles
             updateParticles();
 
-            // Render
+            // Render scene
             renderer.render(scene, camera);
         }
 
         // ============================================
-        // START
+        // START APPLICATION
         // ============================================
         window.addEventListener('load', init);
     </script>
