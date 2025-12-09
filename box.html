@@ -479,41 +479,7 @@
         // LABEL CREATION (Using Expresswaybill.svg)
         // ============================================
         function createLabel() {
-            const textureLoader = new THREE.TextureLoader();
-
-            // Load Expresswaybill.svg texture (with fallback)
-            const labelTexture = textureLoader.load(
-                'Expresswaybill.svg',
-                // Success callback
-                (texture) => {
-                    console.log('Label texture loaded successfully');
-                },
-                // Progress callback
-                undefined,
-                // Error callback - create a fallback texture
-                (error) => {
-                    console.warn('Expresswaybill.svg not found, using fallback');
-                    createFallbackLabel();
-                }
-            );
-
-            const labelGeometry = new THREE.PlaneGeometry(1.5, 0.75);
-            const labelMaterial = new THREE.MeshBasicMaterial({
-                map: labelTexture,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 1
-            });
-
-            labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
-            labelMesh.position.set(0, 2.15, 0);
-            labelMesh.rotation.x = -Math.PI / 2;
-            labelMesh.userData.isLabel = true;
-            scene.add(labelMesh);
-        }
-
-        // Create fallback label if image not found
-        function createFallbackLabel() {
+            // Create fallback label first (since Expresswaybill.svg doesn't exist yet)
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 256;
@@ -524,31 +490,60 @@
             ctx.fillRect(0, 0, 512, 256);
 
             // Border
-            ctx.strokeStyle = '#333333';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#ff6b00';
+            ctx.lineWidth = 6;
             ctx.strokeRect(10, 10, 492, 236);
 
             // Title
             ctx.fillStyle = '#333333';
-            ctx.font = 'bold 48px Arial';
+            ctx.font = 'bold 42px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('EXPRESS WAYBILL', 256, 90);
+            ctx.fillText('快递单 EXPRESS WAYBILL', 256, 80);
 
             // Subtitle
-            ctx.font = '24px Arial';
-            ctx.fillText('Click to sign for delivery', 256, 140);
+            ctx.font = '28px Arial';
+            ctx.fillStyle = '#ff6b00';
+            ctx.fillText('👆 点击签收 Click to Sign', 256, 140);
 
             // Barcode simulation
             ctx.fillStyle = '#000000';
-            for (let i = 0; i < 20; i++) {
-                const x = 100 + i * 15;
-                const height = Math.random() * 40 + 20;
-                ctx.fillRect(x, 180, Math.random() * 8 + 2, height);
+            for (let i = 0; i < 25; i++) {
+                const x = 80 + i * 15;
+                const height = Math.random() * 40 + 25;
+                ctx.fillRect(x, 180, Math.random() * 6 + 3, height);
             }
 
-            const texture = new THREE.CanvasTexture(canvas);
-            labelMesh.material.map = texture;
-            labelMesh.material.needsUpdate = true;
+            const labelTexture = new THREE.CanvasTexture(canvas);
+
+            const labelGeometry = new THREE.PlaneGeometry(1.5, 0.75);
+            const labelMaterial = new THREE.MeshBasicMaterial({
+                map: labelTexture,
+                side: THREE.DoubleSide,
+                transparent: false,  // Changed to false for better click detection
+                opacity: 1
+            });
+
+            labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
+            labelMesh.position.set(0, 2.15, 0);
+            labelMesh.rotation.x = -Math.PI / 2;
+            labelMesh.userData.isLabel = true;
+
+            scene.add(labelMesh);
+
+            // Try to load Expresswaybill.svg if it exists
+            const textureLoader = new THREE.TextureLoader();
+            textureLoader.load(
+                'Expresswaybill.svg',
+                (texture) => {
+                    console.log('Expresswaybill.svg loaded successfully');
+                    labelMesh.material.map = texture;
+                    labelMesh.material.needsUpdate = true;
+                },
+                undefined,
+                (error) => {
+                    console.log('Using fallback label texture');
+                }
+            );
         }
 
         // ============================================
@@ -711,17 +706,23 @@
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(scene.children, true);
 
+            console.log('Click detected! State:', state, 'Intersects:', intersects.length);
+
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
+                console.log('Clicked object:', clickedObject, 'isLabel:', clickedObject.userData.isLabel);
 
                 // State: labelAttached - only label is clickable
                 if (state === "labelAttached" && clickedObject.userData.isLabel) {
+                    console.log('Opening signature overlay!');
                     openSignatureOverlay();
                 }
                 // State: labelRemoved - box is clickable
                 else if (state === "labelRemoved" && isBoxClicked(clickedObject)) {
                     handleBoxClick();
                 }
+            } else {
+                console.log('No objects intersected');
             }
         }
 
