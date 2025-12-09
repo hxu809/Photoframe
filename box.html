@@ -476,10 +476,10 @@
         }
 
         // ============================================
-        // LABEL CREATION (Using Expresswaybill.svg)
+        // LABEL CREATION (Using Label.svg)
         // ============================================
         function createLabel() {
-            // Create fallback label first (since Expresswaybill.svg doesn't exist yet)
+            // Create fallback label first
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 256;
@@ -519,7 +519,7 @@
             const labelMaterial = new THREE.MeshBasicMaterial({
                 map: labelTexture,
                 side: THREE.DoubleSide,
-                transparent: false,  // Changed to false for better click detection
+                transparent: false,
                 opacity: 1
             });
 
@@ -530,18 +530,18 @@
 
             scene.add(labelMesh);
 
-            // Try to load Expresswaybill.svg if it exists
+            // Try to load Label.svg if it exists
             const textureLoader = new THREE.TextureLoader();
             textureLoader.load(
-                'Expresswaybill.svg',
+                'Label.svg',
                 (texture) => {
-                    console.log('Expresswaybill.svg loaded successfully');
+                    console.log('Label.svg loaded successfully');
                     labelMesh.material.map = texture;
                     labelMesh.material.needsUpdate = true;
                 },
                 undefined,
                 (error) => {
-                    console.log('Using fallback label texture');
+                    console.log('Label.svg not found, using fallback label texture');
                 }
             );
         }
