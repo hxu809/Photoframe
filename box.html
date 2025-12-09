@@ -250,7 +250,7 @@
         // Click detection
         let mouseDownPos = { x: 0, y: 0 };
         let isDragging = false;
-        const DRAG_THRESHOLD = 5;
+        const DRAG_THRESHOLD = 3;  // Reduced from 5 to make clicks easier
 
         // Signature canvas
         let signatureCanvas, signatureCtx;
@@ -516,22 +516,26 @@
             const labelTexture = new THREE.CanvasTexture(canvas);
 
             // Make label larger and more visible
-            const labelGeometry = new THREE.PlaneGeometry(1.8, 1.2);
-            const labelMaterial = new THREE.MeshBasicMaterial({
+            const labelGeometry = new THREE.PlaneGeometry(1.9, 1.3);
+            const labelMaterial = new THREE.MeshStandardMaterial({
                 map: labelTexture,
                 side: THREE.DoubleSide,
                 transparent: false,
                 opacity: 1,
+                roughness: 0.8,
+                metalness: 0.1,
                 depthTest: true,
                 depthWrite: true
             });
 
             labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
-            labelMesh.position.set(0, 2.12, 0);  // Slightly lower position
+            labelMesh.position.set(0, 2.18, 0);  // Higher position to ensure it's above the box
             labelMesh.rotation.x = -Math.PI / 2;
             labelMesh.userData.isLabel = true;
+            labelMesh.renderOrder = 1;  // Render after box to ensure visibility
 
             scene.add(labelMesh);
+            console.log('Label mesh created and added to scene:', labelMesh);
 
             // Try to load label image (try both Label.svg and label.svg)
             const textureLoader = new THREE.TextureLoader();
@@ -542,9 +546,12 @@
                 (texture) => {
                     console.log('label.svg loaded successfully');
                     labelMesh.material.map = texture;
-                    labelMesh.material.transparent = false;  // Ensure not transparent
+                    labelMesh.material.transparent = false;
                     labelMesh.material.opacity = 1;
+                    labelMesh.material.roughness = 0.8;
+                    labelMesh.material.metalness = 0.1;
                     labelMesh.material.needsUpdate = true;
+                    console.log('Label material updated with texture');
                 },
                 undefined,
                 (error) => {
@@ -556,7 +563,10 @@
                             labelMesh.material.map = texture;
                             labelMesh.material.transparent = false;
                             labelMesh.material.opacity = 1;
+                            labelMesh.material.roughness = 0.8;
+                            labelMesh.material.metalness = 0.1;
                             labelMesh.material.needsUpdate = true;
+                            console.log('Label material updated with texture');
                         },
                         undefined,
                         (error) => {
@@ -729,21 +739,34 @@
 
             console.log('Click detected! State:', state, 'Intersects:', intersects.length);
 
+            // Log all intersected objects for debugging
+            if (intersects.length > 0) {
+                console.log('All intersected objects:', intersects.map((i, idx) => ({
+                    index: idx,
+                    distance: i.distance,
+                    isLabel: i.object.userData.isLabel,
+                    isBox: i.object.parent === boxBody
+                })));
+            }
+
             if (intersects.length > 0) {
                 const clickedObject = intersects[0].object;
-                console.log('Clicked object:', clickedObject, 'isLabel:', clickedObject.userData.isLabel);
+                console.log('Clicked object (closest):', clickedObject, 'isLabel:', clickedObject.userData.isLabel);
 
                 // State: labelAttached - only label is clickable
                 if (state === "labelAttached" && clickedObject.userData.isLabel) {
-                    console.log('Opening signature overlay!');
+                    console.log('✅ Opening signature overlay!');
                     openSignatureOverlay();
                 }
                 // State: labelRemoved - box is clickable
                 else if (state === "labelRemoved" && isBoxClicked(clickedObject)) {
+                    console.log('✅ Box clicked!');
                     handleBoxClick();
+                } else {
+                    console.log('⚠️ Object clicked but not in correct state or not the right object');
                 }
             } else {
-                console.log('No objects intersected');
+                console.log('❌ No objects intersected - clicked on empty space');
             }
         }
 
