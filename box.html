@@ -530,18 +530,32 @@
 
             scene.add(labelMesh);
 
-            // Try to load Label.svg if it exists
+            // Try to load label image (try both Label.svg and label.svg)
             const textureLoader = new THREE.TextureLoader();
+
+            // First try label.svg (lowercase)
             textureLoader.load(
-                'Label.svg',
+                'label.svg',
                 (texture) => {
-                    console.log('Label.svg loaded successfully');
+                    console.log('label.svg loaded successfully');
                     labelMesh.material.map = texture;
                     labelMesh.material.needsUpdate = true;
                 },
                 undefined,
                 (error) => {
-                    console.log('Label.svg not found, using fallback label texture');
+                    // If lowercase fails, try uppercase
+                    textureLoader.load(
+                        'Label.svg',
+                        (texture) => {
+                            console.log('Label.svg loaded successfully');
+                            labelMesh.material.map = texture;
+                            labelMesh.material.needsUpdate = true;
+                        },
+                        undefined,
+                        (error) => {
+                            console.log('No label SVG found, using fallback label texture');
+                        }
+                    );
                 }
             );
         }
