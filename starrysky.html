@@ -109,24 +109,24 @@
                             svg.insertBefore(styleElement, svg.firstChild);
                         }
 
-                        // 添加聚焦效果的CSS
+                        // 添加聚焦效果的CSS - 使用属性选择器确保兼容性
                         const focusStyles = `
                             /* 星空背景 - 稍微放大 */
-                            #Sky\\ 1 {
+                            [id="Sky 1"] {
                                 transform: scale(1.15);
                                 transform-origin: center;
                                 transform-box: fill-box;
                             }
 
                             /* 塔 - 稍微放大，作为视觉焦点 */
-                            #Tower\\ 1 {
+                            [id="Tower 1"] {
                                 transform: scale(1.25);
                                 transform-origin: center;
                                 transform-box: fill-box;
                             }
 
                             /* 村庄 - 稍微缩小 */
-                            #Town\\ 1 {
+                            [id="Town 1"] {
                                 transform: scale(0.85);
                                 transform-origin: center;
                                 transform-box: fill-box;
