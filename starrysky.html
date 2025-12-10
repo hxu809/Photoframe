@@ -52,19 +52,10 @@
             }
         }
 
-        /* 旋转效果 */
+        /* 移除旋转，只保留星光闪烁 */
         .svg-container svg {
-            animation: slowRotate 120s linear infinite, starGlow 6s ease-in-out infinite;
+            animation: starGlow 6s ease-in-out infinite;
             transform-origin: center;
-        }
-
-        @keyframes slowRotate {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
         }
 
         /* 标题 */
@@ -91,7 +82,48 @@
         fetch('DynamicStarrysky.svg')
             .then(response => response.text())
             .then(svgText => {
-                document.getElementById('svgContainer').innerHTML = svgText;
+                const container = document.getElementById('svgContainer');
+                container.innerHTML = svgText;
+
+                // 等待SVG加载完成后添加聚焦效果样式
+                setTimeout(() => {
+                    const svg = container.querySelector('svg');
+                    if (svg) {
+                        // 创建或获取 <style> 元素
+                        let styleElement = svg.querySelector('style');
+                        if (!styleElement) {
+                            styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                            svg.insertBefore(styleElement, svg.firstChild);
+                        }
+
+                        // 添加聚焦效果的CSS
+                        const focusStyles = `
+                            /* 星空背景 - 稍微放大 */
+                            #Sky\\ 1 {
+                                transform: scale(1.15);
+                                transform-origin: center;
+                                transform-box: fill-box;
+                            }
+
+                            /* 塔 - 稍微放大，作为视觉焦点 */
+                            #Tower\\ 1 {
+                                transform: scale(1.25);
+                                transform-origin: center;
+                                transform-box: fill-box;
+                            }
+
+                            /* 村庄 - 稍微缩小 */
+                            #Town\\ 1 {
+                                transform: scale(0.85);
+                                transform-origin: center;
+                                transform-box: fill-box;
+                            }
+                        `;
+
+                        styleElement.textContent += focusStyles;
+                        console.log('✅ 聚焦效果已应用');
+                    }
+                }, 100);
             })
             .catch(error => {
                 console.error('加载SVG失败:', error);
