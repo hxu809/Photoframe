@@ -318,12 +318,29 @@
                     const svg = container.querySelector('svg');
 
                     if (svg) {
+                        console.log('✅ SVG元素找到');
+
                         // 创建或获取 <style> 元素
                         let styleElement = svg.querySelector('style');
                         if (!styleElement) {
                             styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
                             svg.insertBefore(styleElement, svg.firstChild);
+                            console.log('✅ 新建style元素');
+                        } else {
+                            console.log('✅ 使用现有style元素');
                         }
+
+                        // 检查元素是否存在
+                        const bird = svg.querySelector('[id="Bird1 1"]');
+                        const flower1 = svg.querySelector('[id="Flower1 1"]');
+                        const flower2 = svg.querySelector('[id="Flower2 1"]');
+                        const flower3 = svg.querySelector('[id="Flower3 1"]');
+
+                        console.log('元素检查:');
+                        console.log('  Bird1 1:', bird ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Flower1 1:', flower1 ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Flower2 1:', flower2 ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Flower3 1:', flower3 ? '✅ 找到' : '❌ 未找到');
 
                         // 注入所有动画CSS - 使用属性选择器确保兼容性
                         const animationStyles = `
@@ -478,6 +495,13 @@
 
                         styleElement.textContent += animationStyles;
                         console.log('✅ 国画动画CSS已注入到SVG');
+                        console.log('CSS长度:', styleElement.textContent.length, '字符');
+
+                        // 验证CSS是否真的被应用
+                        if (bird) {
+                            const computedStyle = window.getComputedStyle(bird);
+                            console.log('鸟的动画:', computedStyle.animation);
+                        }
                     }
 
                     const bird = document.getElementById('Bird1 1');

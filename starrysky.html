@@ -102,12 +102,27 @@
                 setTimeout(() => {
                     const svg = container.querySelector('svg');
                     if (svg) {
+                        console.log('✅ SVG元素找到');
+
                         // 创建或获取 <style> 元素
                         let styleElement = svg.querySelector('style');
                         if (!styleElement) {
                             styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
                             svg.insertBefore(styleElement, svg.firstChild);
+                            console.log('✅ 新建style元素');
+                        } else {
+                            console.log('✅ 使用现有style元素');
                         }
+
+                        // 检查元素是否存在
+                        const sky = svg.querySelector('[id="Sky 1"]');
+                        const tower = svg.querySelector('[id="Tower 1"]');
+                        const town = svg.querySelector('[id="Town 1"]');
+
+                        console.log('元素检查:');
+                        console.log('  Sky 1:', sky ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Tower 1:', tower ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Town 1:', town ? '✅ 找到' : '❌ 未找到');
 
                         // 添加聚焦效果的CSS - 使用属性选择器确保兼容性
                         const focusStyles = `
@@ -134,7 +149,18 @@
                         `;
 
                         styleElement.textContent += focusStyles;
-                        console.log('✅ 聚焦效果已应用');
+                        console.log('✅ 聚焦效果CSS已注入');
+                        console.log('CSS长度:', styleElement.textContent.length, '字符');
+
+                        // 验证CSS是否真的被应用
+                        if (sky) {
+                            const computedStyle = window.getComputedStyle(sky);
+                            console.log('星空的transform:', computedStyle.transform);
+                        }
+                        if (tower) {
+                            const computedStyle = window.getComputedStyle(tower);
+                            console.log('塔的transform:', computedStyle.transform);
+                        }
                     }
                 }, 100);
             })
