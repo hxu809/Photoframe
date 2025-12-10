@@ -19,7 +19,7 @@
             background: #1a1a1a;
         }
 
-        /* Canvas container - initially visible */
+        /* Canvas container */
         #canvas-container {
             width: 100%;
             height: 100%;
@@ -31,7 +31,7 @@
             pointer-events: none;
         }
 
-        /* Photo frame page - initially hidden */
+        /* Photo frame page */
         #frame-page {
             position: fixed;
             top: 0;
@@ -49,7 +49,6 @@
             pointer-events: auto;
         }
 
-        /* Load the actual photo frame page in an iframe */
         #frame-page iframe {
             width: 100%;
             height: 100%;
@@ -141,7 +140,6 @@
         #clear-btn:hover {
             background: #d32f2f;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(244, 67, 54, 0.4);
         }
 
         #confirm-btn {
@@ -152,14 +150,8 @@
         #confirm-btn:hover {
             background: #45a049;
             transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
         }
 
-        #signature-buttons button:active {
-            transform: translateY(0);
-        }
-
-        /* Loading indicator */
         #loading {
             position: fixed;
             top: 50%;
@@ -168,53 +160,18 @@
             color: white;
             font-size: 20px;
             z-index: 100;
-            text-align: center;
-        }
-
-        #loading::after {
-            content: '...';
-            animation: dots 1.5s steps(3, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            #signature-dialog {
-                padding: 30px 20px;
-            }
-
-            #signature-dialog h2 {
-                font-size: 24px;
-            }
-
-            #signature-canvas {
-                height: 180px;
-            }
-
-            #signature-buttons button {
-                font-size: 16px;
-                padding: 12px;
-            }
         }
     </style>
 </head>
 <body>
-    <div id="loading">Loading 3D Scene</div>
+    <div id="loading">Loading 3D Scene...</div>
 
-    <!-- 3D Canvas Container -->
     <div id="canvas-container"></div>
 
-    <!-- Photo Frame Page (will load index.html) -->
     <div id="frame-page">
         <iframe src="index.html"></iframe>
     </div>
 
-    <!-- Signature overlay -->
     <div id="signature-overlay">
         <div id="signature-dialog">
             <h2>📝 Sign the Delivery</h2>
@@ -226,58 +183,47 @@
         </div>
     </div>
 
-    <!-- Three.js from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
         // ============================================
-        // GLOBAL VARIABLES
+        // GLOBAL STATE
         // ============================================
         let scene, camera, renderer, controls;
         let boxBody, boxFlaps = [];
         let labelMesh;
+        let labelClickHelper; // Larger invisible click area
         let insideLight;
         let raycaster, mouse;
         let particles = [];
 
-        // State management
         let state = "labelAttached"; // labelAttached, signing, labelRemoved, boxShaking, boxOpened, transitioned
         let boxClickCount = 0;
         const CLICKS_TO_OPEN = 3;
-        let hasTransitioned = false; // Ensure transition only happens once
+        let hasTransitioned = false;
 
-        // Click detection
-        let mouseDownPos = { x: 0, y: 0 };
-        let isDragging = false;
-        const DRAG_THRESHOLD = 3;  // Reduced from 5 to make clicks easier
+        // Robust click detection
+        let pointerDownPos = null;
+        let pointerDownTime = 0;
+        const CLICK_MOVE_THRESHOLD = 15;   // pixels - more lenient
+        const CLICK_TIME_THRESHOLD = 500; // ms - more lenient
 
-        // Signature canvas
         let signatureCanvas, signatureCtx;
         let isDrawing = false;
-
-        // Animation ID for cleanup
         let animationId;
 
         // ============================================
         // INITIALIZATION
         // ============================================
         function init() {
-            // Setup scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x2a2a2a);
             scene.fog = new THREE.Fog(0x2a2a2a, 10, 50);
 
-            // Setup camera
-            camera = new THREE.PerspectiveCamera(
-                45,
-                window.innerWidth / window.innerHeight,
-                0.1,
-                1000
-            );
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(5, 4, 8);
 
-            // Setup renderer
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -285,7 +231,6 @@
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // Setup controls
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
@@ -293,79 +238,61 @@
             controls.maxDistance = 20;
             controls.maxPolarAngle = Math.PI / 2;
 
-            // Setup raycaster for click detection
             raycaster = new THREE.Raycaster();
+            raycaster.params.Line.threshold = 0.5;
+            raycaster.params.Points.threshold = 0.5;
             mouse = new THREE.Vector2();
 
-            // Add lights
             setupLights();
-
-            // Create 3D objects
             createBox();
             createLabel();
             createFloor();
-
-            // Setup signature canvas
             setupSignatureCanvas();
-
-            // Event listeners
             setupEventListeners();
 
-            // Hide loading
             document.getElementById('loading').style.display = 'none';
-
-            // Start animation loop
             animate();
         }
 
         // ============================================
-        // LIGHTING SETUP
+        // LIGHTING
         // ============================================
         function setupLights() {
-            // Ambient light for overall brightness
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
             scene.add(ambientLight);
 
-            // Main directional light (simulates sunlight)
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
             dirLight.position.set(5, 10, 5);
             dirLight.castShadow = true;
-            dirLight.shadow.camera.left = -10;
-            dirLight.shadow.camera.right = 10;
-            dirLight.shadow.camera.top = 10;
-            dirLight.shadow.camera.bottom = -10;
             dirLight.shadow.mapSize.width = 2048;
             dirLight.shadow.mapSize.height = 2048;
             scene.add(dirLight);
 
-            // Fill light from opposite side
             const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
             fillLight.position.set(-5, 5, -5);
             scene.add(fillLight);
 
-            // Inside light (golden glow, initially off)
             insideLight = new THREE.PointLight(0xffd700, 0, 5);
             insideLight.position.set(0, 1, 0);
             scene.add(insideLight);
         }
 
         // ============================================
-        // BOX CREATION (with separate flaps)
+        // BOX CREATION
         // ============================================
         function createBox() {
             const boxSize = 2;
             const flapSize = 0.9;
             const flapThickness = 0.05;
 
-            // Cardboard material with texture-like appearance
             const cardboardMaterial = new THREE.MeshStandardMaterial({
                 color: 0xc9a96e,
                 roughness: 0.9,
                 metalness: 0.1
             });
 
-            // Main box body (5 sides: bottom, front, back, left, right)
-            const boxGroup = new THREE.Group();
+            boxBody = new THREE.Group();
+            boxBody.userData.isBox = true;
 
             // Bottom
             const bottom = new THREE.Mesh(
@@ -375,205 +302,139 @@
             bottom.position.y = flapThickness / 2;
             bottom.castShadow = true;
             bottom.receiveShadow = true;
-            boxGroup.add(bottom);
+            bottom.userData.isBox = true;
+            boxBody.add(bottom);
 
-            // Front wall
-            const front = new THREE.Mesh(
-                new THREE.BoxGeometry(boxSize, boxSize, flapThickness),
-                cardboardMaterial
-            );
-            front.position.set(0, boxSize / 2 + flapThickness, boxSize / 2);
-            front.castShadow = true;
-            front.receiveShadow = true;
-            boxGroup.add(front);
+            // Walls
+            const walls = [
+                { pos: [0, boxSize / 2 + flapThickness, boxSize / 2], size: [boxSize, boxSize, flapThickness] },  // front
+                { pos: [0, boxSize / 2 + flapThickness, -boxSize / 2], size: [boxSize, boxSize, flapThickness] }, // back
+                { pos: [-boxSize / 2, boxSize / 2 + flapThickness, 0], size: [flapThickness, boxSize, boxSize] }, // left
+                { pos: [boxSize / 2, boxSize / 2 + flapThickness, 0], size: [flapThickness, boxSize, boxSize] }   // right
+            ];
 
-            // Back wall
-            const back = new THREE.Mesh(
-                new THREE.BoxGeometry(boxSize, boxSize, flapThickness),
-                cardboardMaterial
-            );
-            back.position.set(0, boxSize / 2 + flapThickness, -boxSize / 2);
-            back.castShadow = true;
-            back.receiveShadow = true;
-            boxGroup.add(back);
+            walls.forEach(w => {
+                const wall = new THREE.Mesh(new THREE.BoxGeometry(...w.size), cardboardMaterial);
+                wall.position.set(...w.pos);
+                wall.castShadow = true;
+                wall.receiveShadow = true;
+                wall.userData.isBox = true;
+                boxBody.add(wall);
+            });
 
-            // Left wall
-            const left = new THREE.Mesh(
-                new THREE.BoxGeometry(flapThickness, boxSize, boxSize),
-                cardboardMaterial
-            );
-            left.position.set(-boxSize / 2, boxSize / 2 + flapThickness, 0);
-            left.castShadow = true;
-            left.receiveShadow = true;
-            boxGroup.add(left);
+            // Four top flaps
+            const flapConfigs = [
+                { pos: [0, flapSize / 2], size: [boxSize, flapThickness, flapSize], axis: 'x', dir: 1 },  // front
+                { pos: [0, -flapSize / 2], size: [boxSize, flapThickness, flapSize], axis: 'x', dir: -1 }, // back
+                { pos: [-flapSize / 2, 0], size: [flapSize, flapThickness, boxSize], axis: 'z', dir: -1 }, // left
+                { pos: [flapSize / 2, 0], size: [flapSize, flapThickness, boxSize], axis: 'z', dir: 1 }    // right
+            ];
 
-            // Right wall
-            const right = new THREE.Mesh(
-                new THREE.BoxGeometry(flapThickness, boxSize, boxSize),
-                cardboardMaterial
-            );
-            right.position.set(boxSize / 2, boxSize / 2 + flapThickness, 0);
-            right.castShadow = true;
-            right.receiveShadow = true;
-            boxGroup.add(right);
+            flapConfigs.forEach(cfg => {
+                const flap = new THREE.Mesh(new THREE.BoxGeometry(...cfg.size), cardboardMaterial);
+                flap.position.set(cfg.pos[0], boxSize + flapThickness, cfg.pos[1]);
+                flap.userData.isBox = true;
+                flap.userData.pivot = new THREE.Vector3(cfg.pos[0], boxSize + flapThickness, cfg.pos[1]);
+                flap.userData.axis = cfg.axis;
+                flap.userData.direction = cfg.dir;
+                flap.castShadow = true;
+                boxBody.add(flap);
+                boxFlaps.push(flap);
+            });
 
-            // Create 4 top flaps (that can open by rotating)
-            // Front flap
-            const flapFront = new THREE.Mesh(
-                new THREE.BoxGeometry(boxSize, flapThickness, flapSize),
-                cardboardMaterial
-            );
-            flapFront.position.set(0, boxSize + flapThickness, flapSize / 2);
-            flapFront.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
-            flapFront.userData.axis = 'x';
-            flapFront.userData.direction = 1;
-            flapFront.castShadow = true;
-            boxGroup.add(flapFront);
-            boxFlaps.push(flapFront);
-
-            // Back flap
-            const flapBack = new THREE.Mesh(
-                new THREE.BoxGeometry(boxSize, flapThickness, flapSize),
-                cardboardMaterial
-            );
-            flapBack.position.set(0, boxSize + flapThickness, -flapSize / 2);
-            flapBack.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
-            flapBack.userData.axis = 'x';
-            flapBack.userData.direction = -1;
-            flapBack.castShadow = true;
-            boxGroup.add(flapBack);
-            boxFlaps.push(flapBack);
-
-            // Left flap
-            const flapLeft = new THREE.Mesh(
-                new THREE.BoxGeometry(flapSize, flapThickness, boxSize),
-                cardboardMaterial
-            );
-            flapLeft.position.set(-flapSize / 2, boxSize + flapThickness, 0);
-            flapLeft.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
-            flapLeft.userData.axis = 'z';
-            flapLeft.userData.direction = -1;
-            flapLeft.castShadow = true;
-            boxGroup.add(flapLeft);
-            boxFlaps.push(flapLeft);
-
-            // Right flap
-            const flapRight = new THREE.Mesh(
-                new THREE.BoxGeometry(flapSize, flapThickness, boxSize),
-                cardboardMaterial
-            );
-            flapRight.position.set(flapSize / 2, boxSize + flapThickness, 0);
-            flapRight.userData.pivot = new THREE.Vector3(0, boxSize + flapThickness, 0);
-            flapRight.userData.axis = 'z';
-            flapRight.userData.direction = 1;
-            flapRight.castShadow = true;
-            boxGroup.add(flapRight);
-            boxFlaps.push(flapRight);
-
-            boxBody = boxGroup;
-            boxBody.userData.isBox = true;
             scene.add(boxBody);
         }
 
         // ============================================
-        // LABEL CREATION (Using Label.svg)
+        // LABEL CREATION
         // ============================================
         function createLabel() {
-            // Create fallback label first
+            // Create fallback canvas texture with bright, obvious design
             const canvas = document.createElement('canvas');
             canvas.width = 512;
             canvas.height = 256;
             const ctx = canvas.getContext('2d');
 
-            // Background
+            // Bright white background with glowing border
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, 512, 256);
-
-            // Border
             ctx.strokeStyle = '#ff6b00';
-            ctx.lineWidth = 6;
+            ctx.lineWidth = 8;
             ctx.strokeRect(10, 10, 492, 236);
 
-            // Title
+            // Add inner glow
+            ctx.strokeStyle = '#ffaa00';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(18, 18, 476, 220);
+
+            // Large, bold text
             ctx.fillStyle = '#333333';
-            ctx.font = 'bold 42px Arial';
+            ctx.font = 'bold 48px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('快递单 EXPRESS WAYBILL', 256, 80);
-
-            // Subtitle
-            ctx.font = '28px Arial';
+            ctx.fillText('快递单 SHIPPING LABEL', 256, 70);
+            ctx.font = 'bold 36px Arial';
             ctx.fillStyle = '#ff6b00';
-            ctx.fillText('👆 点击签收 Click to Sign', 256, 140);
+            ctx.fillText('👆👆👆 点击签收 👆👆👆', 256, 130);
+            ctx.font = 'bold 32px Arial';
+            ctx.fillStyle = '#ff0000';
+            ctx.fillText('CLICK HERE TO SIGN', 256, 175);
 
-            // Barcode simulation
+            // Barcode
             ctx.fillStyle = '#000000';
             for (let i = 0; i < 25; i++) {
                 const x = 80 + i * 15;
-                const height = Math.random() * 40 + 25;
-                ctx.fillRect(x, 180, Math.random() * 6 + 3, height);
+                const height = Math.random() * 30 + 20;
+                ctx.fillRect(x, 195, Math.random() * 6 + 3, height);
             }
 
             const labelTexture = new THREE.CanvasTexture(canvas);
 
-            // Make label larger and more visible
-            const labelGeometry = new THREE.PlaneGeometry(1.9, 1.3);
+            // MUCH LARGER label - 3x2 instead of 2x1.4
+            const labelGeometry = new THREE.PlaneGeometry(3.0, 2.0);
             const labelMaterial = new THREE.MeshStandardMaterial({
                 map: labelTexture,
                 side: THREE.DoubleSide,
-                transparent: false,
-                opacity: 1,
-                roughness: 0.8,
-                metalness: 0.1,
-                depthTest: true,
-                depthWrite: true
+                roughness: 0.7,
+                metalness: 0.2,
+                emissive: 0xffffff,
+                emissiveIntensity: 0.1
             });
 
             labelMesh = new THREE.Mesh(labelGeometry, labelMaterial);
-            labelMesh.position.set(0, 2.18, 0);  // Higher position to ensure it's above the box
+            labelMesh.position.set(0, 2.3, 0); // Raised higher
             labelMesh.rotation.x = -Math.PI / 2;
             labelMesh.userData.isLabel = true;
-            labelMesh.renderOrder = 1;  // Render after box to ensure visibility
-
+            labelMesh.renderOrder = 2;
             scene.add(labelMesh);
-            console.log('Label mesh created and added to scene:', labelMesh);
 
-            // Try to load label image (try both Label.svg and label.svg)
+            // Create LARGE invisible click helper - even bigger than the label
+            const helperGeometry = new THREE.PlaneGeometry(4.0, 3.0);
+            const helperMaterial = new THREE.MeshBasicMaterial({
+                transparent: true,
+                opacity: 0,
+                side: THREE.DoubleSide
+            });
+            labelClickHelper = new THREE.Mesh(helperGeometry, helperMaterial);
+            labelClickHelper.position.set(0, 2.35, 0); // Slightly above label
+            labelClickHelper.rotation.x = -Math.PI / 2;
+            labelClickHelper.userData.isLabel = true;
+            labelClickHelper.userData.isClickHelper = true;
+            labelClickHelper.renderOrder = 3;
+            scene.add(labelClickHelper);
+
+            console.log('✅ Label mesh created:', labelMesh.uuid);
+            console.log('✅ Click helper created:', labelClickHelper.uuid);
+
+            // Try to load label.svg
             const textureLoader = new THREE.TextureLoader();
-
-            // First try label.svg (lowercase)
-            textureLoader.load(
-                'label.svg',
+            textureLoader.load('label.svg',
                 (texture) => {
-                    console.log('label.svg loaded successfully');
+                    console.log('✅ label.svg loaded successfully');
                     labelMesh.material.map = texture;
-                    labelMesh.material.transparent = false;
-                    labelMesh.material.opacity = 1;
-                    labelMesh.material.roughness = 0.8;
-                    labelMesh.material.metalness = 0.1;
                     labelMesh.material.needsUpdate = true;
-                    console.log('Label material updated with texture');
                 },
                 undefined,
-                (error) => {
-                    // If lowercase fails, try uppercase
-                    textureLoader.load(
-                        'Label.svg',
-                        (texture) => {
-                            console.log('Label.svg loaded successfully');
-                            labelMesh.material.map = texture;
-                            labelMesh.material.transparent = false;
-                            labelMesh.material.opacity = 1;
-                            labelMesh.material.roughness = 0.8;
-                            labelMesh.material.metalness = 0.1;
-                            labelMesh.material.needsUpdate = true;
-                            console.log('Label material updated with texture');
-                        },
-                        undefined,
-                        (error) => {
-                            console.log('No label SVG found, using fallback label texture');
-                        }
-                    );
-                }
+                () => console.log('ℹ️ Using fallback label texture')
             );
         }
 
@@ -581,55 +442,150 @@
         // FLOOR
         // ============================================
         function createFloor() {
-            const floorGeometry = new THREE.PlaneGeometry(20, 20);
-            const floorMaterial = new THREE.MeshStandardMaterial({
-                color: 0x404040,
-                roughness: 0.8,
-                metalness: 0.2
-            });
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(20, 20),
+                new THREE.MeshStandardMaterial({ color: 0x404040, roughness: 0.8 })
+            );
             floor.rotation.x = -Math.PI / 2;
-            floor.position.y = 0;
             floor.receiveShadow = true;
             scene.add(floor);
         }
 
         // ============================================
-        // SIGNATURE CANVAS SETUP
+        // EVENT LISTENERS
+        // ============================================
+        function setupEventListeners() {
+            renderer.domElement.addEventListener('pointerdown', onPointerDown);
+            renderer.domElement.addEventListener('pointerup', onPointerUp);
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onPointerDown(event) {
+            pointerDownPos = { x: event.clientX, y: event.clientY };
+            pointerDownTime = performance.now();
+
+            // Check if clicking on label - if so, temporarily disable orbit controls
+            if (state === "labelAttached") {
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(scene.children, true);
+
+                if (intersects.length > 0) {
+                    const first = intersects[0].object;
+                    if (first === labelMesh || first === labelClickHelper || first.userData.isLabel) {
+                        controls.enabled = false;
+                        console.log('🔒 OrbitControls disabled for label click');
+                    }
+                }
+            }
+        }
+
+        function onPointerUp(event) {
+            if (!pointerDownPos) return;
+
+            const dx = event.clientX - pointerDownPos.x;
+            const dy = event.clientY - pointerDownPos.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const dt = performance.now() - pointerDownTime;
+
+            console.log(`📏 Pointer up: dist=${dist.toFixed(1)}px, dt=${dt.toFixed(0)}ms`);
+
+            if (dist < CLICK_MOVE_THRESHOLD && dt < CLICK_TIME_THRESHOLD) {
+                handleClick(event);
+            }
+
+            // Re-enable controls if they were disabled
+            if (state === "labelAttached" && !controls.enabled) {
+                controls.enabled = true;
+                console.log('🔓 OrbitControls re-enabled');
+            }
+
+            pointerDownPos = null;
+        }
+
+        function handleClick(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+
+            console.log(`\n🖱️ CLICK DETECTED!`);
+            console.log(`  State: ${state}`);
+            console.log(`  Mouse NDC: (${mouse.x.toFixed(2)}, ${mouse.y.toFixed(2)})`);
+            console.log(`  Intersects found: ${intersects.length}`);
+
+            if (intersects.length > 0) {
+                console.log(`  First 5 intersections:`);
+                for (let i = 0; i < Math.min(5, intersects.length); i++) {
+                    const obj = intersects[i].object;
+                    console.log(`    ${i}: uuid=${obj.uuid.substring(0,8)}, isLabel=${obj.userData.isLabel}, isBox=${obj.userData.isBox}, isClickHelper=${obj.userData.isClickHelper}`);
+                }
+
+                const first = intersects[0].object;
+
+                if (state === "labelAttached" && (first === labelMesh || first === labelClickHelper || first.userData.isLabel)) {
+                    console.log('✅✅✅ LABEL CLICKED! Opening signature overlay');
+                    openSignatureOverlay();
+                    return;
+                }
+
+                if ((state === "labelRemoved" || state === "boxShaking") && isBoxObject(first)) {
+                    console.log('✅ BOX CLICKED!');
+                    handleBoxClick();
+                    return;
+                }
+
+                console.log(`  ⚠️ Click did not match any handler`);
+            } else {
+                console.log(`  ❌ No intersections found`);
+            }
+        }
+
+        function isBoxObject(obj) {
+            let current = obj;
+            while (current) {
+                if (current.userData && current.userData.isBox) return true;
+                current = current.parent;
+            }
+            return false;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ============================================
+        // SIGNATURE OVERLAY
         // ============================================
         function setupSignatureCanvas() {
             signatureCanvas = document.getElementById('signature-canvas');
             const rect = signatureCanvas.getBoundingClientRect();
-            signatureCanvas.width = rect.width * window.devicePixelRatio;
-            signatureCanvas.height = rect.height * window.devicePixelRatio;
+            signatureCanvas.width = rect.width * 2;
+            signatureCanvas.height = rect.height * 2;
             signatureCtx = signatureCanvas.getContext('2d');
-            signatureCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            signatureCtx.scale(2, 2);
             signatureCtx.lineWidth = 3;
             signatureCtx.lineCap = 'round';
-            signatureCtx.lineJoin = 'round';
             signatureCtx.strokeStyle = '#000';
 
-            // Clear button
-            document.getElementById('clear-btn').addEventListener('click', () => {
+            document.getElementById('clear-btn').onclick = () => {
                 signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-            });
+            };
 
-            // Confirm button
-            document.getElementById('confirm-btn').addEventListener('click', () => {
+            document.getElementById('confirm-btn').onclick = () => {
                 closeSignatureOverlay();
                 tearOffLabel();
-            });
+            };
 
-            // Drawing on signature canvas (mouse)
-            signatureCanvas.addEventListener('mousedown', startSignature);
-            signatureCanvas.addEventListener('mousemove', drawSignature);
-            signatureCanvas.addEventListener('mouseup', endSignature);
-            signatureCanvas.addEventListener('mouseleave', endSignature);
-
-            // Drawing on signature canvas (touch)
-            signatureCanvas.addEventListener('touchstart', startSignature);
-            signatureCanvas.addEventListener('touchmove', drawSignature);
-            signatureCanvas.addEventListener('touchend', endSignature);
+            signatureCanvas.addEventListener('pointerdown', startSignature);
+            signatureCanvas.addEventListener('pointermove', drawSignature);
+            signatureCanvas.addEventListener('pointerup', endSignature);
         }
 
         function startSignature(e) {
@@ -655,133 +611,16 @@
 
         function getSignaturePos(e) {
             const rect = signatureCanvas.getBoundingClientRect();
-            const touch = e.touches ? e.touches[0] : e;
             return {
-                x: (touch.clientX - rect.left) * (signatureCanvas.width / rect.width) / window.devicePixelRatio,
-                y: (touch.clientY - rect.top) * (signatureCanvas.height / rect.height) / window.devicePixelRatio
+                x: (e.clientX - rect.left) * (signatureCanvas.width / rect.width) / 2,
+                y: (e.clientY - rect.top) * (signatureCanvas.height / rect.height) / 2
             };
         }
 
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-        function setupEventListeners() {
-            // Mouse events
-            renderer.domElement.addEventListener('mousedown', onPointerDown);
-            renderer.domElement.addEventListener('mousemove', onPointerMove);
-            renderer.domElement.addEventListener('mouseup', onPointerUp);
-
-            // Touch events
-            renderer.domElement.addEventListener('touchstart', onPointerDown);
-            renderer.domElement.addEventListener('touchmove', onPointerMove);
-            renderer.domElement.addEventListener('touchend', onPointerUp);
-
-            // Window resize
-            window.addEventListener('resize', onWindowResize);
-        }
-
-        function onPointerDown(e) {
-            const pos = getMousePosition(e);
-            mouseDownPos = { x: pos.x, y: pos.y };
-            isDragging = false;
-        }
-
-        function onPointerMove(e) {
-            const pos = getMousePosition(e);
-            const distance = Math.sqrt(
-                Math.pow(pos.x - mouseDownPos.x, 2) +
-                Math.pow(pos.y - mouseDownPos.y, 2)
-            );
-            if (distance > DRAG_THRESHOLD) {
-                isDragging = true;
-            }
-        }
-
-        function onPointerUp(e) {
-            if (isDragging) {
-                isDragging = false;
-                return;
-            }
-
-            // It's a click, not a drag
-            const pos = getMousePosition(e);
-            handleClick(pos.x, pos.y);
-        }
-
-        function getMousePosition(e) {
-            const touch = e.touches ? e.touches[0] : e;
-            return {
-                x: touch.clientX,
-                y: touch.clientY
-            };
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // ============================================
-        // CLICK HANDLING & RAYCASTING
-        // ============================================
-        function handleClick(x, y) {
-            // Don't handle clicks if already transitioned
-            if (state === "transitioned") return;
-
-            // Convert to normalized device coordinates (-1 to +1)
-            mouse.x = (x / window.innerWidth) * 2 - 1;
-            mouse.y = -(y / window.innerHeight) * 2 + 1;
-
-            // Raycast to find intersected objects
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(scene.children, true);
-
-            console.log('Click detected! State:', state, 'Intersects:', intersects.length);
-
-            // Log all intersected objects for debugging
-            if (intersects.length > 0) {
-                console.log('All intersected objects:', intersects.map((i, idx) => ({
-                    index: idx,
-                    distance: i.distance,
-                    isLabel: i.object.userData.isLabel,
-                    isBox: i.object.parent === boxBody
-                })));
-            }
-
-            if (intersects.length > 0) {
-                const clickedObject = intersects[0].object;
-                console.log('Clicked object (closest):', clickedObject, 'isLabel:', clickedObject.userData.isLabel);
-
-                // State: labelAttached - only label is clickable
-                if (state === "labelAttached" && clickedObject.userData.isLabel) {
-                    console.log('✅ Opening signature overlay!');
-                    openSignatureOverlay();
-                }
-                // State: labelRemoved - box is clickable
-                else if (state === "labelRemoved" && isBoxClicked(clickedObject)) {
-                    console.log('✅ Box clicked!');
-                    handleBoxClick();
-                } else {
-                    console.log('⚠️ Object clicked but not in correct state or not the right object');
-                }
-            } else {
-                console.log('❌ No objects intersected - clicked on empty space');
-            }
-        }
-
-        function isBoxClicked(object) {
-            // Check if clicked object is part of the box
-            return object.parent === boxBody || object === boxBody;
-        }
-
-        // ============================================
-        // SIGNATURE OVERLAY
-        // ============================================
         function openSignatureOverlay() {
             state = "signing";
             document.getElementById('signature-overlay').classList.add('active');
-            controls.enabled = false; // Disable orbit during signing
+            controls.enabled = false;
         }
 
         function closeSignatureOverlay() {
@@ -791,236 +630,176 @@
         }
 
         // ============================================
-        // LABEL TEAR-OFF ANIMATION
+        // ANIMATIONS
         // ============================================
         function tearOffLabel() {
-            const duration = 1500; // ms
+            const duration = 1500;
             const startTime = Date.now();
             const startPos = labelMesh.position.clone();
             const startRot = labelMesh.rotation.clone();
 
-            function animateTear() {
+            // Remove click helper immediately
+            if (labelClickHelper) {
+                scene.remove(labelClickHelper);
+                console.log('✅ Click helper removed');
+            }
+
+            function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-
-                // Easing function (ease-out cubic)
                 const eased = 1 - Math.pow(1 - progress, 3);
 
-                // Move up and to the side
                 labelMesh.position.x = startPos.x + eased * 3;
                 labelMesh.position.y = startPos.y + eased * 2;
                 labelMesh.position.z = startPos.z + eased * 1;
 
-                // Random jitter/shake
                 const jitter = Math.sin(elapsed * 0.05) * 0.1 * (1 - progress);
                 labelMesh.rotation.x = startRot.x + jitter;
-                labelMesh.rotation.y = startRot.y + eased * Math.PI * 2 + jitter;
-                labelMesh.rotation.z = startRot.z + eased * Math.PI + jitter;
+                labelMesh.rotation.y = startRot.y + eased * Math.PI * 2;
+                labelMesh.rotation.z = startRot.z + eased * Math.PI;
 
-                // Fade out
                 labelMesh.material.opacity = 1 - eased;
+                labelMesh.material.transparent = true;
 
                 if (progress < 1) {
-                    requestAnimationFrame(animateTear);
+                    requestAnimationFrame(animate);
                 } else {
-                    // Remove label from scene
                     scene.remove(labelMesh);
+                    console.log('✅ Label removed');
                 }
             }
-
-            animateTear();
+            animate();
         }
 
-        // ============================================
-        // BOX SHAKE ANIMATION
-        // ============================================
         function shakeBox() {
-            const duration = 300; // ms
+            const duration = 300;
             const startTime = Date.now();
             const originalPos = boxBody.position.clone();
             const originalRot = boxBody.rotation.clone();
 
-            function animateShake() {
+            function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-
-                // Shake intensity decreases over time
                 const intensity = (1 - progress) * 0.1;
 
-                // Random offsets for position
-                const offsetX = (Math.random() - 0.5) * intensity;
-                const offsetY = (Math.random() - 0.5) * intensity * 0.5;
-                const offsetZ = (Math.random() - 0.5) * intensity;
-
-                // Random rotations
-                const rotX = (Math.random() - 0.5) * intensity;
-                const rotZ = (Math.random() - 0.5) * intensity;
-
                 boxBody.position.set(
-                    originalPos.x + offsetX,
-                    originalPos.y + offsetY,
-                    originalPos.z + offsetZ
+                    originalPos.x + (Math.random() - 0.5) * intensity,
+                    originalPos.y + (Math.random() - 0.5) * intensity * 0.5,
+                    originalPos.z + (Math.random() - 0.5) * intensity
                 );
                 boxBody.rotation.set(
-                    originalRot.x + rotX,
+                    originalRot.x + (Math.random() - 0.5) * intensity,
                     originalRot.y,
-                    originalRot.z + rotZ
+                    originalRot.z + (Math.random() - 0.5) * intensity
                 );
 
                 if (progress < 1) {
-                    requestAnimationFrame(animateShake);
+                    requestAnimationFrame(animate);
                 } else {
-                    // Reset to original position
                     boxBody.position.copy(originalPos);
                     boxBody.rotation.copy(originalRot);
                 }
             }
-
-            animateShake();
-            // TODO: Add cardboard rattle sound effect here
+            animate();
         }
 
-        // ============================================
-        // BOX CLICK HANDLING
-        // ============================================
         function handleBoxClick() {
             boxClickCount++;
+            console.log(`Box click #${boxClickCount}`);
 
             if (boxClickCount < CLICKS_TO_OPEN) {
-                // Just shake
                 state = "boxShaking";
                 shakeBox();
                 setTimeout(() => {
-                    if (state === "boxShaking") {
-                        state = "labelRemoved";
-                    }
+                    if (state === "boxShaking") state = "labelRemoved";
                 }, 300);
             } else {
-                // Open the box
                 state = "boxOpened";
                 openBox();
             }
         }
 
-        // ============================================
-        // BOX OPEN ANIMATION WITH GOLDEN GLOW
-        // ============================================
         function openBox() {
-            const duration = 2000; // ms
+            const duration = 2000;
             const startTime = Date.now();
             let pulseInterval;
 
-            function animateOpen() {
+            function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-
-                // Easing function (ease-out cubic)
                 const eased = 1 - Math.pow(1 - progress, 3);
+                const angle = eased * Math.PI / 2;
 
-                // Open flaps (rotate around pivot edges)
-                boxFlaps.forEach((flap, index) => {
+                boxFlaps.forEach((flap, idx) => {
                     const pivot = flap.userData.pivot;
                     const axis = flap.userData.axis;
-                    const direction = flap.userData.direction;
+                    const dir = flap.userData.direction;
 
-                    // Calculate rotation angle (90 degrees)
-                    const angle = eased * Math.PI / 2;
-
-                    // Reset position to pivot
                     flap.position.copy(pivot);
 
-                    // Apply rotation around pivot based on axis
                     if (axis === 'x') {
-                        flap.rotation.x = direction * angle;
-                        flap.position.z += direction * Math.sin(angle) * 0.45;
+                        flap.rotation.x = dir * angle;
+                        flap.position.z += dir * Math.sin(angle) * 0.45;
                         flap.position.y -= (1 - Math.cos(angle)) * 0.45;
-                    } else { // axis === 'z'
-                        flap.rotation.z = direction * angle;
-                        flap.position.x += direction * Math.sin(angle) * 0.45;
+                    } else {
+                        flap.rotation.z = dir * angle;
+                        flap.position.x += dir * Math.sin(angle) * 0.45;
                         flap.position.y -= (1 - Math.cos(angle)) * 0.45;
                     }
                 });
 
-                // Activate golden light (intensity ramps up)
-                const lightIntensity = eased * 5;
-                insideLight.intensity = lightIntensity;
+                insideLight.intensity = eased * 5;
 
-                // Create particles after box starts opening
                 if (progress > 0.3 && Math.random() < 0.3) {
                     createParticle();
                 }
 
                 if (progress < 1) {
-                    requestAnimationFrame(animateOpen);
+                    requestAnimationFrame(animate);
                 } else {
-                    // Start pulsing light effect
                     pulseInterval = setInterval(() => {
-                        const time = Date.now() * 0.001;
-                        insideLight.intensity = 3 + Math.sin(time * 2) * 0.5;
+                        insideLight.intensity = 3 + Math.sin(Date.now() * 0.001 * 2) * 0.5;
                     }, 50);
 
-                    // After 3 seconds of golden effect, transition to photo frame
                     setTimeout(() => {
                         clearInterval(pulseInterval);
                         transitionToPhotoFrame();
                     }, 3000);
                 }
             }
-
-            animateOpen();
+            animate();
         }
 
-        // ============================================
-        // TRANSITION TO PHOTO FRAME PAGE
-        // ============================================
         function transitionToPhotoFrame() {
-            // Ensure this only happens once
             if (hasTransitioned) return;
             hasTransitioned = true;
             state = "transitioned";
 
-            // Fade out canvas container
-            const canvasContainer = document.getElementById('canvas-container');
-            canvasContainer.classList.add('fade-out');
+            document.getElementById('canvas-container').classList.add('fade-out');
 
-            // After fade out completes, show photo frame page
             setTimeout(() => {
-                const framePage = document.getElementById('frame-page');
-                framePage.classList.add('visible');
-
-                // Stop rendering 3D scene (performance optimization)
-                if (animationId) {
-                    cancelAnimationFrame(animationId);
-                }
-            }, 1500); // Match CSS transition duration
+                document.getElementById('frame-page').classList.add('visible');
+                if (animationId) cancelAnimationFrame(animationId);
+            }, 1500);
         }
 
-        // ============================================
-        // PARTICLE SYSTEM (Golden magic dust)
-        // ============================================
         function createParticle() {
-            const geometry = new THREE.SphereGeometry(0.05, 8, 8);
-            const material = new THREE.MeshBasicMaterial({
-                color: 0xffd700,
-                transparent: true,
-                opacity: 1
-            });
-            const particle = new THREE.Mesh(geometry, material);
+            const particle = new THREE.Mesh(
+                new THREE.SphereGeometry(0.05, 8, 8),
+                new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true })
+            );
 
-            // Start position (inside box, randomly distributed)
             particle.position.set(
                 (Math.random() - 0.5) * 0.8,
                 1.2 + Math.random() * 0.3,
                 (Math.random() - 0.5) * 0.8
             );
 
-            // Velocity (upward with slight random drift)
             particle.userData.velocity = {
                 x: (Math.random() - 0.5) * 0.02,
                 y: 0.02 + Math.random() * 0.02,
                 z: (Math.random() - 0.5) * 0.02
             };
-
             particle.userData.life = 1.0;
 
             scene.add(particle);
@@ -1029,22 +808,17 @@
 
         function updateParticles() {
             for (let i = particles.length - 1; i >= 0; i--) {
-                const particle = particles[i];
+                const p = particles[i];
+                p.position.x += p.userData.velocity.x;
+                p.position.y += p.userData.velocity.y;
+                p.position.z += p.userData.velocity.z;
+                p.userData.life -= 0.01;
+                p.material.opacity = p.userData.life;
 
-                // Update position
-                particle.position.x += particle.userData.velocity.x;
-                particle.position.y += particle.userData.velocity.y;
-                particle.position.z += particle.userData.velocity.z;
-
-                // Update life and opacity
-                particle.userData.life -= 0.01;
-                particle.material.opacity = particle.userData.life;
-
-                // Remove dead particles
-                if (particle.userData.life <= 0) {
-                    scene.remove(particle);
-                    particle.geometry.dispose();
-                    particle.material.dispose();
+                if (p.userData.life <= 0) {
+                    scene.remove(p);
+                    p.geometry.dispose();
+                    p.material.dispose();
                     particles.splice(i, 1);
                 }
             }
@@ -1055,19 +829,25 @@
         // ============================================
         function animate() {
             animationId = requestAnimationFrame(animate);
-
-            // Update controls (damping)
             controls.update();
-
-            // Update particles
             updateParticles();
 
-            // Render scene
+            // Pulse the label to make it obviously clickable
+            if (state === "labelAttached" && labelMesh) {
+                const pulse = Math.sin(Date.now() * 0.003) * 0.15 + 1;
+                labelMesh.scale.set(pulse, pulse, 1);
+                labelMesh.material.emissiveIntensity = Math.sin(Date.now() * 0.003) * 0.15 + 0.2;
+
+                if (labelClickHelper) {
+                    labelClickHelper.scale.set(pulse, pulse, 1);
+                }
+            }
+
             renderer.render(scene, camera);
         }
 
         // ============================================
-        // START APPLICATION
+        // START
         // ============================================
         window.addEventListener('load', init);
     </script>
