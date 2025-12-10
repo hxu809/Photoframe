@@ -91,6 +91,13 @@
     <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
 
     <script>
+        // ESC键返回到上一级
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                window.location.href = 'index.html';
+            }
+        });
+
         // 加载并解析SVG
         fetch('DynamicPicasso.svg')
             .then(response => response.text())
