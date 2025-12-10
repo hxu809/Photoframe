@@ -70,20 +70,25 @@
             }
         }
 
-        /* 画作容器 - 完全对齐相框开口 */
+        /* 画作容器 - 完全对齐相框开口，中心位于屏幕正中心 */
         .artwork-container {
             position: absolute;
-            left: 395px;
-            top: 178px;
+            left: 395px;   /* (1920 - 1130) / 2 = 395，确保水平居中 */
+            top: 178px;    /* (1080 - 724) / 2 = 178，确保垂直居中 */
             width: 1130px;
             height: 724px;
             overflow: hidden;
             z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         /* 滚筒滚动区域 */
         .artwork-scroll {
-            position: relative;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
@@ -106,8 +111,9 @@
             width: auto;
             height: auto;
             object-fit: contain;
-            object-position: center;
+            object-position: center center;
             display: block;
+            margin: auto;
         }
 
         /* 相框 - 覆盖在画作上方 */
