@@ -440,21 +440,21 @@
                         }
 
                         // 检查元素是否存在
-                        const bird = svg.querySelector('[id="Bird1 1"]');
-                        const flower1 = svg.querySelector('[id="Flower1 1"]');
-                        const flower2 = svg.querySelector('[id="Flower2 1"]');
-                        const flower3 = svg.querySelector('[id="Flower3 1"]');
+                        const bird = svg.querySelector('#Bird11');
+                        const flower1 = svg.querySelector('#Flower11');
+                        const flower2 = svg.querySelector('#Flower21');
+                        const flower3 = svg.querySelector('#Flower31');
 
                         console.log('元素检查:');
-                        console.log('  Bird1 1:', bird ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Flower1 1:', flower1 ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Flower2 1:', flower2 ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Flower3 1:', flower3 ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Bird11:', bird ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Flower11:', flower1 ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Flower21:', flower2 ? '✅ 找到' : '❌ 未找到');
+                        console.log('  Flower31:', flower3 ? '✅ 找到' : '❌ 未找到');
 
-                        // 注入所有动画CSS - 使用属性选择器确保兼容性
+                        // 注入所有动画CSS
                         const animationStyles = `
                             /* 鸟的动画 - 轻微上下浮动和翅膀扇动效果 */
-                            [id="Bird1 1"] {
+                            #Bird11 {
                                 animation: birdFloat 3s ease-in-out infinite;
                                 transform-origin: center;
                                 transform-box: fill-box;
@@ -479,7 +479,7 @@
                             }
 
                             /* 鼠标悬停时的翻转动画 */
-                            [id="Bird1 1"].flipped {
+                            #Bird11.flipped {
                                 animation: birdFloatFlipped 3s ease-in-out infinite;
                             }
 
@@ -499,7 +499,7 @@
                             }
 
                             /* 鼠标悬停时的跳动动画 */
-                            [id="Bird1 1"].hopping {
+                            #Bird11.hopping {
                                 animation: birdHop 0.6s ease-in-out;
                             }
 
@@ -519,7 +519,7 @@
                             }
 
                             /* 点击动画 */
-                            [id="Bird1 1"].clicking {
+                            #Bird11.clicking {
                                 animation: birdClick 0.5s ease-in-out;
                             }
 
@@ -539,7 +539,7 @@
                             }
 
                             /* 花朵动画 */
-                            [id="Flower1 1"] {
+                            #Flower11 {
                                 animation: flowerSway1 3s ease-in-out infinite;
                                 transform-origin: bottom center;
                                 transform-box: fill-box;
@@ -560,7 +560,7 @@
                                 }
                             }
 
-                            [id="Flower2 1"] {
+                            #Flower21 {
                                 animation: flowerSway2 3.5s ease-in-out infinite 0.5s;
                                 transform-origin: bottom center;
                                 transform-box: fill-box;
@@ -581,7 +581,7 @@
                                 }
                             }
 
-                            [id="Flower3 1"] {
+                            #Flower31 {
                                 animation: flowerSway3 4s ease-in-out infinite 0.8s;
                                 transform-origin: bottom center;
                                 transform-box: fill-box;
@@ -615,17 +615,9 @@
                         }
                     }
 
-                    // 在SVG容器内查找小鸟元素 - 使用querySelector处理包含空格的ID
-                    const allBirds = container.querySelectorAll('[id="Bird1 1"]');
-                    console.log('查找所有Bird1 1元素:', allBirds.length, '个');
-
-                    allBirds.forEach((el, index) => {
-                        console.log(`  [${index}] 标签名: ${el.tagName}, ID: ${el.getAttribute('id')}`);
-                    });
-
-                    // 只选择rect元素
-                    const bird = container.querySelector('rect[id="Bird1 1"]');
-                    console.log('查找rect小鸟元素:', bird ? '✅ 找到' : '❌ 未找到');
+                    // 在SVG容器内查找小鸟元素
+                    const bird = container.querySelector('#Bird11');
+                    console.log('查找Bird11小鸟元素:', bird ? '✅ 找到' : '❌ 未找到');
 
                     if (bird) {
                         let isFlipped = false;
