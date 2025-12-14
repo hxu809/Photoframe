@@ -616,8 +616,16 @@
                     }
 
                     // 在SVG容器内查找小鸟元素 - 使用querySelector处理包含空格的ID
-                    const bird = container.querySelector('[id="Bird1 1"]');
-                    console.log('查找小鸟元素:', bird ? '✅ 找到' : '❌ 未找到');
+                    const allBirds = container.querySelectorAll('[id="Bird1 1"]');
+                    console.log('查找所有Bird1 1元素:', allBirds.length, '个');
+
+                    allBirds.forEach((el, index) => {
+                        console.log(`  [${index}] 标签名: ${el.tagName}, ID: ${el.getAttribute('id')}`);
+                    });
+
+                    // 只选择rect元素
+                    const bird = container.querySelector('rect[id="Bird1 1"]');
+                    console.log('查找rect小鸟元素:', bird ? '✅ 找到' : '❌ 未找到');
 
                     if (bird) {
                         let isFlipped = false;
