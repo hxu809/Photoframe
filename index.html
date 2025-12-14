@@ -239,20 +239,63 @@
             }
         });
 
-        // 更新画作显示
-        function updateArtwork(index) {
+        // 更新画作显示（带滚动效果）
+        function updateArtwork(index, direction = 'none') {
             if (!svgDoc || !ukiyoeGroup) return;
 
             const info = artworkInfo[index];
             if (!info) return;
 
-            console.log(`🔄 切换到: ${info.name}`);
+            console.log(`🔄 切换到: ${info.name}, 方向: ${direction}`);
 
-            // 清空现有内容
-            while (ukiyoeGroup.firstChild) {
-                ukiyoeGroup.removeChild(ukiyoeGroup.firstChild);
+            // 如果是初始化，直接显示不需要动画
+            if (direction === 'none') {
+                clearAndShowArtwork(info);
+                return;
             }
 
+            // 获取当前的foreignObject
+            const currentFO = ukiyoeGroup.querySelector('foreignObject');
+
+            if (!currentFO) {
+                clearAndShowArtwork(info);
+                return;
+            }
+
+            // 创建新的画作（在视野外）
+            const newFO = createArtworkElement(info, direction === 'down' ? 724 : -724);
+            ukiyoeGroup.appendChild(newFO);
+
+            // 获取当前和新的div容器
+            const currentDiv = currentFO.querySelector('div');
+            const newDiv = newFO.querySelector('div');
+
+            // 添加过渡效果
+            currentDiv.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            newDiv.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+
+            // 触发动画
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    // 当前画作滑出
+                    const currentOffset = direction === 'down' ? -724 : 724;
+                    currentDiv.style.transform = `translateY(${currentOffset}px)`;
+
+                    // 新画作滑入
+                    newDiv.style.transform = 'translateY(0)';
+                });
+            });
+
+            // 动画结束后清理
+            setTimeout(() => {
+                if (currentFO && currentFO.parentNode) {
+                    ukiyoeGroup.removeChild(currentFO);
+                }
+            }, 650);
+        }
+
+        // 创建画作元素
+        function createArtworkElement(info, offsetY = 0) {
             // 创建foreignObject来嵌入图片
             const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
             foreignObject.setAttribute('x', '485');
@@ -268,6 +311,7 @@
             div.style.justifyContent = 'center';
             div.style.alignItems = 'center';
             div.style.overflow = 'hidden';
+            div.style.transform = `translateY(${offsetY}px)`;
 
             // 创建img元素
             const img = document.createElement('img');
@@ -280,6 +324,18 @@
 
             div.appendChild(img);
             foreignObject.appendChild(div);
+
+            return foreignObject;
+        }
+
+        // 清空并显示画作（无动画）
+        function clearAndShowArtwork(info) {
+            // 清空现有内容
+            while (ukiyoeGroup.firstChild) {
+                ukiyoeGroup.removeChild(ukiyoeGroup.firstChild);
+            }
+
+            const foreignObject = createArtworkElement(info, 0);
             ukiyoeGroup.appendChild(foreignObject);
         }
 
@@ -305,17 +361,24 @@
         }
 
         // 切换到指定画作
-        function switchToArtwork(index) {
+        function switchToArtwork(index, direction = 'down') {
             if (index === currentIndex || isScrolling) return;
 
             // 防抖控制
             isScrolling = true;
 
             // 更新当前索引
+            const oldIndex = currentIndex;
             currentIndex = index;
 
-            // 更新画作显示
-            updateArtwork(currentIndex);
+            // 确定滚动方向
+            let scrollDirection = 'down';
+            if (direction === 'up' || index < oldIndex) {
+                scrollDirection = 'up';
+            }
+
+            // 更新画作显示（带滚动效果）
+            updateArtwork(currentIndex, scrollDirection);
 
             // 更新画作提示
             updateArtworkHint();
@@ -323,7 +386,7 @@
             // 解除防抖
             setTimeout(() => {
                 isScrolling = false;
-            }, 600);
+            }, 700);
         }
 
         // 滚轮事件监听
@@ -342,13 +405,13 @@
             // 只响应明显的滚动动作
             if (Math.abs(e.deltaY) > 10) {
                 if (e.deltaY > 0) {
-                    // 向下滚动 - 下一张
+                    // 向下滚动 - 下一张（画作向上移动）
                     const nextIndex = (currentIndex + 1) % TOTAL_ARTWORKS;
-                    switchToArtwork(nextIndex);
+                    switchToArtwork(nextIndex, 'down');
                 } else {
-                    // 向上滚动 - 上一张
+                    // 向上滚动 - 上一张（画作向下移动）
                     const prevIndex = (currentIndex - 1 + TOTAL_ARTWORKS) % TOTAL_ARTWORKS;
-                    switchToArtwork(prevIndex);
+                    switchToArtwork(prevIndex, 'up');
                 }
             }
         }, { passive: false });
@@ -357,10 +420,10 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
                 const nextIndex = (currentIndex + 1) % TOTAL_ARTWORKS;
-                switchToArtwork(nextIndex);
+                switchToArtwork(nextIndex, 'down');
             } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                 const prevIndex = (currentIndex - 1 + TOTAL_ARTWORKS) % TOTAL_ARTWORKS;
-                switchToArtwork(prevIndex);
+                switchToArtwork(prevIndex, 'up');
             } else if (e.key === 'Enter') {
                 // 按Enter键跳转到动态页面
                 goToDynamicArtwork();
