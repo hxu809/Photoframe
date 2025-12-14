@@ -453,6 +453,11 @@
 
                         // 注入所有动画CSS
                         const animationStyles = `
+                            /* 树枝 - 保持静止，但允许鼠标事件穿透 */
+                            #Branch1\\ 1 {
+                                pointer-events: none !important;
+                            }
+
                             /* 鸟的动画 - 轻微上下浮动和翅膀扇动效果 */
                             #Bird11 {
                                 animation: birdFloat 3s ease-in-out infinite;
