@@ -70,54 +70,8 @@
             }
         }
 
-        /* 画作容器 - 完全对齐相框开口，中心位于屏幕正中心 */
-        .artwork-container {
-            position: absolute;
-            left: 395px;   /* (1920 - 1130) / 2 = 395，确保水平居中 */
-            top: 178px;    /* (1080 - 724) / 2 = 178，确保垂直居中 */
-            width: 1130px;
-            height: 724px;
-            overflow: hidden;
-            z-index: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* 滚筒滚动区域 */
-        .artwork-scroll {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.8s cubic-bezier(0.65, 0, 0.35, 1);
-        }
-
-        /* 单个画作 */
-        .artwork {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            left: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .artwork img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            object-position: center center;
-            display: block;
-            margin: auto;
-        }
-
-        /* 相框 - 居中显示 */
-        #photoframe {
+        /* Monsterframe相框 - 居中显示 */
+        #monsterframe {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -126,27 +80,18 @@
             height: 100%;
             max-width: 1920px;
             max-height: 1080px;
-            z-index: 2;
-            pointer-events: none;
+            z-index: 1;
         }
 
-        /* 隐藏大相框 */
-        #bigframe {
-            display: none;
-        }
-
-        /* 提示文字 */
-        .hint {
-            display: none;
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #999;
-            font-size: 14px;
-            opacity: 0.7;
+        /* 画作点击区域 */
+        .artwork-clickarea {
+            position: absolute;
+            left: 485px;
+            top: 178px;
+            width: 950px;
+            height: 724px;
             z-index: 10;
-            transition: opacity 0.3s;
+            cursor: pointer;
         }
 
         /* 画作提示 */
@@ -160,7 +105,7 @@
             font-size: 16px;
             font-weight: bold;
             opacity: 0;
-            z-index: 10;
+            z-index: 100;
             animation: pulse 2s infinite;
         }
 
@@ -195,53 +140,28 @@
                 transform: translateX(-50%) scale(1.05);
             }
         }
-
-        /* 点击提示光标 */
-        .artwork-container.clickable {
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- 画作容器 - 必须在相框之前渲染，这样相框才能覆盖在上面 -->
-        <div class="artwork-container">
-            <div class="artwork-scroll" id="artworkScroll">
-                <div class="artwork" data-index="0" style="top: 0;">
-                    <img src="Guohua.png" alt="国画">
-                </div>
-                <div class="artwork" data-index="1" style="top: 724px;">
-                    <img src="Starrysky.png" alt="星空">
-                </div>
-                <div class="artwork" data-index="2" style="top: 1448px;">
-                    <img src="Ukiyoe.png" alt="浮世绘">
-                </div>
-                <div class="artwork" data-index="3" style="top: 2172px;">
-                    <img src="Picasso.png" alt="毕加索">
-                </div>
-            </div>
-        </div>
+        <!-- Monsterframe相框 -->
+        <object id="monsterframe" data="Monsterframe.svg" type="image/svg+xml"></object>
 
-        <!-- 相框 SVG - 居中显示 -->
-        <object id="photoframe" data="Photoframe.svg?v=10" type="image/svg+xml"></object>
-
-        <!-- 大相框 SVG - 已隐藏 -->
-        <object id="bigframe" data="Bigframe.svg" type="image/svg+xml"></object>
+        <!-- 画作点击区域 -->
+        <div class="artwork-clickarea" id="artworkClickArea"></div>
     </div>
 
-    <div class="hint">↕ 滚动鼠标滚轮切换画作 | ← → 方向键切换</div>
     <div class="artwork-hint" id="artworkHint">🎨 点击画作或按 Enter 进入动态效果 🎨</div>
 
     <script>
         let currentIndex = 0;
         let isScrolling = false;
         let lastScrollTime = 0;
-        const ARTWORK_HEIGHT = 724; // 画作高度
-        const SCROLL_COOLDOWN = 600; // 滚动冷却时间（毫秒）- 降低到600ms使响应更灵敏
+        const SCROLL_COOLDOWN = 600; // 滚动冷却时间（毫秒）
 
         // 获取元素
-        const artworkScroll = document.getElementById('artworkScroll');
-        const artworkContainer = document.querySelector('.artwork-container');
+        const monsterframe = document.getElementById('monsterframe');
+        const artworkClickArea = document.getElementById('artworkClickArea');
         const artworkHint = document.getElementById('artworkHint');
         const container = document.querySelector('.container');
         const TOTAL_ARTWORKS = 4;
@@ -254,18 +174,103 @@
 
         // 画作信息配置
         const artworkInfo = {
-            0: { name: '国画', hint: '🖌️ 点击画作或按 Enter 进入动态国画 🖌️', url: 'guohua.html' },
-            1: { name: '星空', hint: '⭐ 点击画作或按 Enter 进入动态星空 ⭐', url: 'starrysky.html' },
-            2: { name: '浮世绘', hint: '🌊 点击画作或按 Enter 进入动态浮世绘 🌊', url: 'ukiyoe.html' },
-            3: { name: '毕加索', hint: '🎨 点击画作或按 Enter 进入动态毕加索 🎨', url: 'picasso.html' }
+            0: {
+                name: '国画',
+                hint: '🖌️ 点击画作或按 Enter 进入动态国画 🖌️',
+                url: 'guohua.html',
+                svgFile: 'Guohua.svg'
+            },
+            1: {
+                name: '星空',
+                hint: '⭐ 点击画作或按 Enter 进入动态星空 ⭐',
+                url: 'starrysky.html',
+                svgFile: 'Starrysky.svg'
+            },
+            2: {
+                name: '浮世绘',
+                hint: '🌊 点击画作或按 Enter 进入动态浮世绘 🌊',
+                url: 'ukiyoe.html',
+                svgFile: 'Ukiyoe.svg'
+            },
+            3: {
+                name: '毕加索',
+                hint: '🎨 点击画作或按 Enter 进入动态毕加索 🎨',
+                url: 'picasso.html',
+                svgFile: 'Picasso.svg'
+            }
         };
+
+        let svgDoc = null;
+        let ukiyoeGroup = null;
+
+        // 等待SVG加载完成
+        monsterframe.addEventListener('load', function() {
+            svgDoc = monsterframe.contentDocument;
+            if (svgDoc) {
+                ukiyoeGroup = svgDoc.getElementById('Ukiyoe');
+
+                if (ukiyoeGroup) {
+                    console.log('✅ Monsterframe.svg 加载成功');
+                    console.log('✅ Ukiyoe 组找到');
+
+                    // 初始化显示第一个画作
+                    updateArtwork(currentIndex);
+                    updateArtworkHint();
+                } else {
+                    console.error('❌ 未找到 Ukiyoe 组');
+                }
+            }
+        });
+
+        // 更新画作显示
+        function updateArtwork(index) {
+            if (!svgDoc || !ukiyoeGroup) return;
+
+            const info = artworkInfo[index];
+            if (!info) return;
+
+            console.log(`🔄 切换到: ${info.name}`);
+
+            // 清空现有内容
+            while (ukiyoeGroup.firstChild) {
+                ukiyoeGroup.removeChild(ukiyoeGroup.firstChild);
+            }
+
+            // 创建foreignObject来嵌入图片
+            const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            foreignObject.setAttribute('x', '485');
+            foreignObject.setAttribute('y', '178');
+            foreignObject.setAttribute('width', '950');
+            foreignObject.setAttribute('height', '724');
+
+            // 创建div容器
+            const div = document.createElement('div');
+            div.style.width = '100%';
+            div.style.height = '100%';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'center';
+            div.style.alignItems = 'center';
+            div.style.overflow = 'hidden';
+
+            // 创建img元素
+            const img = document.createElement('img');
+            img.src = info.svgFile;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+            img.style.width = 'auto';
+            img.style.height = 'auto';
+            img.style.objectFit = 'contain';
+
+            div.appendChild(img);
+            foreignObject.appendChild(div);
+            ukiyoeGroup.appendChild(foreignObject);
+        }
 
         // 检查并更新画作提示
         function updateArtworkHint() {
             const info = artworkInfo[currentIndex];
             artworkHint.textContent = info.hint;
             artworkHint.classList.add('show');
-            artworkContainer.classList.add('clickable');
         }
 
         // 跳转到动态页面
@@ -282,30 +287,29 @@
             }, 1200);
         }
 
-        // 滚筒滚动到指定画作
-        function scrollToArtwork(index) {
+        // 切换到指定画作
+        function switchToArtwork(index) {
             if (index === currentIndex || isScrolling) return;
 
             // 防抖控制
             isScrolling = true;
 
-            // 计算滚动位置（向上移动为负值）
-            const scrollY = -index * ARTWORK_HEIGHT;
-            artworkScroll.style.transform = `translateY(${scrollY}px)`;
-
             // 更新当前索引
             currentIndex = index;
+
+            // 更新画作显示
+            updateArtwork(currentIndex);
 
             // 更新画作提示
             updateArtworkHint();
 
-            // 解除防抖（与CSS transition时间匹配）
+            // 解除防抖
             setTimeout(() => {
                 isScrolling = false;
-            }, 800);
+            }, 600);
         }
 
-        // 滚轮事件监听（带滚动阈值控制）
+        // 滚轮事件监听
         document.addEventListener('wheel', (e) => {
             e.preventDefault();
 
@@ -318,16 +322,16 @@
 
             lastScrollTime = currentTime;
 
-            // 只响应明显的滚动动作（阈值过滤）
+            // 只响应明显的滚动动作
             if (Math.abs(e.deltaY) > 10) {
                 if (e.deltaY > 0) {
-                    // 向下滚动 - 下一张（画作向上移动）
+                    // 向下滚动 - 下一张
                     const nextIndex = (currentIndex + 1) % TOTAL_ARTWORKS;
-                    scrollToArtwork(nextIndex);
+                    switchToArtwork(nextIndex);
                 } else {
-                    // 向上滚动 - 上一张（画作向下移动）
+                    // 向上滚动 - 上一张
                     const prevIndex = (currentIndex - 1 + TOTAL_ARTWORKS) % TOTAL_ARTWORKS;
-                    scrollToArtwork(prevIndex);
+                    switchToArtwork(prevIndex);
                 }
             }
         }, { passive: false });
@@ -336,23 +340,20 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
                 const nextIndex = (currentIndex + 1) % TOTAL_ARTWORKS;
-                scrollToArtwork(nextIndex);
+                switchToArtwork(nextIndex);
             } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
                 const prevIndex = (currentIndex - 1 + TOTAL_ARTWORKS) % TOTAL_ARTWORKS;
-                scrollToArtwork(prevIndex);
+                switchToArtwork(prevIndex);
             } else if (e.key === 'Enter') {
                 // 按Enter键跳转到动态页面
                 goToDynamicArtwork();
             }
         });
 
-        // 点击画作容器跳转到动态页面
-        artworkContainer.addEventListener('click', () => {
+        // 点击画作区域跳转到动态页面
+        artworkClickArea.addEventListener('click', () => {
             goToDynamicArtwork();
         });
-
-        // 初始化显示第一个画作的提示
-        updateArtworkHint();
     </script>
 </body>
 </html>
