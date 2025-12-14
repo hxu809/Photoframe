@@ -610,14 +610,22 @@
                         if (bird) {
                             const computedStyle = window.getComputedStyle(bird);
                             console.log('鸟的动画:', computedStyle.animation);
+                            console.log('鸟的cursor:', computedStyle.cursor);
                         }
                     }
 
-                    const bird = document.getElementById('Bird1 1');
+                    // 在SVG容器内查找小鸟元素 - 使用querySelector处理包含空格的ID
+                    const bird = container.querySelector('[id="Bird1 1"]');
+                    console.log('查找小鸟元素:', bird ? '✅ 找到' : '❌ 未找到');
 
                     if (bird) {
                         let isFlipped = false;
                         let isHopping = false;
+
+                        console.log('小鸟元素详情:');
+                        console.log('  标签名:', bird.tagName);
+                        console.log('  ID:', bird.getAttribute('id'));
+                        console.log('  Cursor样式:', window.getComputedStyle(bird).cursor);
 
                         // 鼠标进入小鸟区域
                         bird.addEventListener('mouseenter', () => {
