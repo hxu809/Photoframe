@@ -273,8 +273,9 @@
 
     <!-- 视频覆盖层 -->
     <div class="video-overlay" id="videoOverlay">
-        <video id="birdVideo" preload="auto">
+        <video id="birdVideo" preload="auto" playsinline webkit-playsinline>
             <source src="Guohua.mp4" type="video/mp4">
+            您的浏览器不支持视频播放。
         </video>
     </div>
 
@@ -341,19 +342,45 @@
 
             if (!videoOverlay || !birdVideo) {
                 console.error('❌ 未找到视频元素');
+                alert('未找到视频元素');
                 return;
             }
+
+            console.log('🎬 准备播放视频');
+            console.log('视频路径:', birdVideo.querySelector('source').src);
+            console.log('视频就绪状态:', birdVideo.readyState);
 
             // 显示视频覆盖层
             videoOverlay.classList.add('show');
 
-            // 重置并播放视频
+            // 重置视频
             birdVideo.currentTime = 0;
-            birdVideo.play().catch(error => {
-                console.error('视频播放失败:', error);
-            });
 
-            console.log('🎬 开始播放小鸟飞走视频');
+            // 尝试播放视频
+            const playPromise = birdVideo.play();
+
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log('✅ 视频开始播放');
+                    })
+                    .catch(error => {
+                        console.error('❌ 视频播放失败:', error);
+                        console.error('错误类型:', error.name);
+                        console.error('错误信息:', error.message);
+                        alert('视频播放失败: ' + error.message);
+                        videoOverlay.classList.remove('show');
+                    });
+            }
+
+            // 视频加载错误处理
+            birdVideo.onerror = (e) => {
+                console.error('❌ 视频加载错误:', e);
+                console.error('错误代码:', birdVideo.error ? birdVideo.error.code : 'unknown');
+                console.error('错误信息:', birdVideo.error ? birdVideo.error.message : 'unknown');
+                alert('视频加载失败');
+                videoOverlay.classList.remove('show');
+            };
 
             // 视频播放结束后隐藏覆盖层
             birdVideo.onended = () => {
