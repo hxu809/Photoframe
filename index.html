@@ -130,6 +130,34 @@
             }
         }
 
+        /* 星空漩涡吸入效果 */
+        .vortex-transition {
+            animation: vortexSpin 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes vortexSpin {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+                filter: blur(0px);
+            }
+            30% {
+                transform: scale(0.9) rotate(180deg);
+                opacity: 0.8;
+                filter: blur(2px);
+            }
+            60% {
+                transform: scale(0.6) rotate(540deg);
+                opacity: 0.5;
+                filter: blur(5px);
+            }
+            100% {
+                transform: scale(0.1) rotate(1080deg);
+                opacity: 0;
+                filter: blur(10px);
+            }
+        }
+
         @keyframes pulse {
             0%, 100% {
                 opacity: 0.6;
@@ -351,13 +379,21 @@
             const info = artworkInfo[currentIndex];
             if (!info) return;
 
-            // 添加放大渐变动画
-            container.classList.add('zoom-transition');
-
-            // 动画完成后跳转
-            setTimeout(() => {
-                window.location.href = info.url;
-            }, 1200);
+            // 根据不同画作使用不同的过渡动画
+            if (currentIndex === STARRYSKY_INDEX) {
+                // 星空使用漩涡吸入效果
+                container.classList.add('vortex-transition');
+                // 动画时间为1.5秒
+                setTimeout(() => {
+                    window.location.href = info.url;
+                }, 1500);
+            } else {
+                // 其他画作使用默认的放大效果
+                container.classList.add('zoom-transition');
+                setTimeout(() => {
+                    window.location.href = info.url;
+                }, 1200);
+            }
         }
 
         // 切换到指定画作
