@@ -243,13 +243,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.3);
+            background: transparent;
             display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.3s ease;
         }
 
         .video-overlay.show {
@@ -258,10 +258,9 @@
         }
 
         .video-overlay video {
-            max-width: 90%;
-            max-height: 90%;
-            width: auto;
-            height: auto;
+            width: 1920px;
+            height: 1080px;
+            object-fit: cover;
         }
     </style>
 </head>
