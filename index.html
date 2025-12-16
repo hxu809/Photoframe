@@ -399,21 +399,12 @@
             const info = artworkInfo[currentIndex];
             if (!info) return;
 
-            // 根据不同画作使用不同的过渡动画
-            if (currentIndex === STARRYSKY_INDEX) {
-                // 星空使用漩涡吸入效果
-                container.classList.add('vortex-transition');
-                // 动画时间为1.5秒
-                setTimeout(() => {
-                    window.location.href = info.url;
-                }, 1500);
-            } else {
-                // 其他画作使用默认的放大效果
-                container.classList.add('zoom-transition');
-                setTimeout(() => {
-                    window.location.href = info.url;
-                }, 1200);
-            }
+            // 所有画作都使用黑色放大旋转的漩涡吸入效果
+            container.classList.add('vortex-transition');
+            // 动画时间为1.5秒
+            setTimeout(() => {
+                window.location.href = info.url;
+            }, 1500);
         }
 
         // 切换到指定画作
