@@ -112,7 +112,7 @@
 
     <!-- 视频叠加层 -->
     <div id="videoOverlay" class="video-overlay">
-        <video id="starryVideo" preload="auto">
+        <video id="starryVideo" preload="auto" loop>
             <source src="starrysky.mp4" type="video/mp4">
         </video>
     </div>
@@ -135,18 +135,12 @@
             const playPromise = starryVideo.play();
             if (playPromise !== undefined) {
                 playPromise
-                    .then(() => console.log('✅ 视频开始播放'))
+                    .then(() => console.log('✅ 视频开始循环播放'))
                     .catch(error => {
                         console.error('❌ 视频播放失败:', error);
                         videoOverlay.classList.remove('show');
                     });
             }
-
-            // 视频播放结束后自动关闭
-            starryVideo.onended = () => {
-                console.log('✅ 视频播放结束');
-                videoOverlay.classList.remove('show');
-            };
         }
 
         // 关闭视频
