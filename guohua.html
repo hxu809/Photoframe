@@ -60,7 +60,7 @@
             }
         }
 
-        /* 鸟的动画 - 轻微上下浮动和翅膀扇动效果 */
+        /* Bird animation - slight floating and flapping effect */
         #Bird1\\ 1 {
             animation: birdFloat 3s ease-in-out infinite;
             transform-origin: center;
@@ -83,7 +83,7 @@
             }
         }
 
-        /* 鼠标悬停时的翻转动画 */
+        /* Flip animation on hover */
         #Bird1\\ 1.flipped {
             animation: birdFloatFlipped 3s ease-in-out infinite;
         }
@@ -103,7 +103,7 @@
             }
         }
 
-        /* 鼠标悬停时的跳动动画 */
+        /* Hopping animation on hover */
         #Bird1\\ 1.hopping {
             animation: birdHop 0.6s ease-in-out;
         }
@@ -123,7 +123,7 @@
             }
         }
 
-        /* 点击动画 */
+        /* Click animation */
         #Bird1\\ 1.clicking {
             animation: birdClick 0.5s ease-in-out;
         }
@@ -143,7 +143,7 @@
             }
         }
 
-        /* 花朵1 - 跟随鸟的动作轻微摇摆 */
+        /* Flower 1 - gentle sway following bird movement */
         #Flower1\\ 1 {
             animation: flowerSway1 3s ease-in-out infinite;
             transform-origin: bottom center;
@@ -164,7 +164,7 @@
             }
         }
 
-        /* 花朵2 - 稍微不同的节奏 */
+        /* Flower 2 - slightly different rhythm */
         #Flower2\\ 1 {
             animation: flowerSway2 3.5s ease-in-out infinite 0.5s;
             transform-origin: bottom center;
@@ -185,7 +185,7 @@
             }
         }
 
-        /* 花朵3 - 更轻柔的摇摆 */
+        /* Flower 3 - gentler sway */
         #Flower3\\ 1 {
             animation: flowerSway3 4s ease-in-out infinite 0.8s;
             transform-origin: bottom center;
@@ -206,7 +206,7 @@
             }
         }
 
-        /* 树枝保持静止 - 不添加动画 */
+        /* Branch stays still - no animation */
         #Branch1\\ 1 {
             /* 无动画，保持静止 */
         }
@@ -231,7 +231,7 @@
             display: none;
         }
 
-        /* 返回按钮 */
+        /* Back button */
         .back-button {
             position: fixed;
             top: 30px;
@@ -255,7 +255,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        /* 视频覆盖层 */
+        /* Video overlay */
         .video-overlay {
             position: fixed;
             top: 0;
@@ -289,21 +289,21 @@
         <div class="title">山水意境</div>
     </div>
 
-    <!-- 视频覆盖层 -->
+    <!-- Video Overlay -->
     <div class="video-overlay" id="videoOverlay">
         <video id="birdVideo" preload="auto" playsinline webkit-playsinline>
             <source src="Guohua.mp4" type="video/mp4">
-            您的浏览器不支持视频播放。
+            Your browser does not support video playback.
         </video>
     </div>
 
-    <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
+    <button class="back-button" onclick="window.location.href='index.html'">Back to Frame</button>
 
     <script>
-        // 创建 Web Audio API 上下文
+        // Create Web Audio API context
         let audioContext = null;
 
-        // 生成鸟叫声
+        // Generate bird chirping sound
         function playBirdSound() {
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -311,10 +311,10 @@
 
             const now = audioContext.currentTime;
 
-            // 创建一个短促的鸟叫声效果（像小鸟鸣叫）
-            // 使用两个音调的快速变化来模拟鸟叫
+            // Create a short bird chirp effect (like a small bird singing)
+            // Use two quick tone changes to simulate bird call
 
-            // 第一个音符（高音）
+            // First note (high pitch)
             const oscillator1 = audioContext.createOscillator();
             const gainNode1 = audioContext.createGain();
 
@@ -332,7 +332,7 @@
             oscillator1.start(now);
             oscillator1.stop(now + 0.15);
 
-            // 第二个音符（稍低，稍后）
+            // Second note (slightly lower, slightly later)
             const oscillator2 = audioContext.createOscillator();
             const gainNode2 = audioContext.createGain();
 
@@ -350,76 +350,76 @@
             oscillator2.start(now + 0.15);
             oscillator2.stop(now + 0.3);
 
-            console.log('🐦 鸟叫声播放');
+            console.log('🐦 Bird chirp played');
         }
 
-        // 播放小鸟飞走视频
+        // Play bird flying away video
         function playBirdVideo() {
             const videoOverlay = document.getElementById('videoOverlay');
             const birdVideo = document.getElementById('birdVideo');
 
             if (!videoOverlay || !birdVideo) {
-                console.error('❌ 未找到视频元素');
-                alert('未找到视频元素');
+                console.error('❌ Video elements not found');
+                alert('Video elements not found');
                 return;
             }
 
-            console.log('🎬 准备播放视频');
-            console.log('视频路径:', birdVideo.querySelector('source').src);
-            console.log('视频就绪状态:', birdVideo.readyState);
+            console.log('🎬 Preparing to play video');
+            console.log('Video path:', birdVideo.querySelector('source').src);
+            console.log('Video ready state:', birdVideo.readyState);
 
-            // 显示视频覆盖层
+            // Show video overlay
             videoOverlay.classList.add('show');
 
-            // 重置视频
+            // Reset video
             birdVideo.currentTime = 0;
 
-            // 尝试播放视频
+            // Attempt to play video
             const playPromise = birdVideo.play();
 
             if (playPromise !== undefined) {
                 playPromise
                     .then(() => {
-                        console.log('✅ 视频开始播放');
+                        console.log('✅ Video started playing');
                     })
                     .catch(error => {
-                        console.error('❌ 视频播放失败:', error);
-                        console.error('错误类型:', error.name);
-                        console.error('错误信息:', error.message);
-                        alert('视频播放失败: ' + error.message);
+                        console.error('❌ Video playback failed:', error);
+                        console.error('Error type:', error.name);
+                        console.error('Error message:', error.message);
+                        alert('Video playback failed: ' + error.message);
                         videoOverlay.classList.remove('show');
                     });
             }
 
-            // 视频加载错误处理
+            // Video loading error handling
             birdVideo.onerror = (e) => {
-                console.error('❌ 视频加载错误:', e);
-                console.error('错误代码:', birdVideo.error ? birdVideo.error.code : 'unknown');
-                console.error('错误信息:', birdVideo.error ? birdVideo.error.message : 'unknown');
-                alert('视频加载失败');
+                console.error('❌ Video loading error:', e);
+                console.error('Error code:', birdVideo.error ? birdVideo.error.code : 'unknown');
+                console.error('Error message:', birdVideo.error ? birdVideo.error.message : 'unknown');
+                alert('Video loading failed');
                 videoOverlay.classList.remove('show');
             };
 
-            // 视频播放结束后隐藏覆盖层
+            // Hide overlay after video ends
             birdVideo.onended = () => {
                 videoOverlay.classList.remove('show');
-                console.log('🎬 视频播放结束');
+                console.log('🎬 Video playback ended');
             };
 
-            // 点击视频区域可以关闭视频
+            // Click video area to close video
             videoOverlay.onclick = (e) => {
                 if (e.target === videoOverlay) {
                     birdVideo.pause();
                     videoOverlay.classList.remove('show');
-                    console.log('🎬 用户关闭视频');
+                    console.log('🎬 User closed video');
                 }
             };
         }
 
-        // ESC键返回到上一级
+        // ESC key to return to previous level
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
-                // 如果视频正在播放，先关闭视频
+                // If video is playing, close it first
                 const videoOverlay = document.getElementById('videoOverlay');
                 const birdVideo = document.getElementById('birdVideo');
 
@@ -427,56 +427,56 @@
                     birdVideo.pause();
                     videoOverlay.classList.remove('show');
                 } else {
-                    // 否则返回首页
+                    // Otherwise return to home page
                     window.location.href = 'index.html';
                 }
             }
         });
 
-        // 加载并解析SVG
+        // Load and parse SVG
         fetch('DynamicGuohua.svg')
             .then(response => response.text())
             .then(svgText => {
                 const container = document.getElementById('svgContainer');
                 container.innerHTML = svgText;
 
-                // SVG加载完成后，注入CSS动画和添加交互功能
+                // After SVG loads, inject CSS animations and add interactive functionality
                 setTimeout(() => {
                     const svg = container.querySelector('svg');
 
                     if (svg) {
-                        console.log('✅ SVG元素找到');
+                        console.log('✅ SVG element found');
 
-                        // 创建或获取 <style> 元素
+                        // Create or get <style> element
                         let styleElement = svg.querySelector('style');
                         if (!styleElement) {
                             styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
                             svg.insertBefore(styleElement, svg.firstChild);
-                            console.log('✅ 新建style元素');
+                            console.log('✅ New style element created');
                         } else {
-                            console.log('✅ 使用现有style元素');
+                            console.log('✅ Using existing style element');
                         }
 
-                        // 检查元素是否存在
+                        // Check if elements exist
                         const bird = svg.querySelector('#Bird11');
                         const flower1 = svg.querySelector('#Flower11');
                         const flower2 = svg.querySelector('#Flower21');
                         const flower3 = svg.querySelector('#Flower31');
 
-                        console.log('元素检查:');
-                        console.log('  Bird11:', bird ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Flower11:', flower1 ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Flower21:', flower2 ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Flower31:', flower3 ? '✅ 找到' : '❌ 未找到');
+                        console.log('Element check:');
+                        console.log('  Bird11:', bird ? '✅ Found' : '❌ Not found');
+                        console.log('  Flower11:', flower1 ? '✅ Found' : '❌ Not found');
+                        console.log('  Flower21:', flower2 ? '✅ Found' : '❌ Not found');
+                        console.log('  Flower31:', flower3 ? '✅ Found' : '❌ Not found');
 
-                        // 注入所有动画CSS
+                        // Inject all animation CSS
                         const animationStyles = `
-                            /* 树枝 - 保持静止，但允许鼠标事件穿透 */
+                            /* Branch - stay still, but allow mouse events to pass through */
                             #Branch1\\ 1 {
                                 pointer-events: none !important;
                             }
 
-                            /* 鸟的动画 - 轻微上下浮动和翅膀扇动效果 */
+                            /* Bird animation - slight floating and flapping effect */
                             #Bird11 {
                                 animation: birdFloat 3s ease-in-out infinite;
                                 transform-origin: center;
@@ -501,7 +501,7 @@
                                 }
                             }
 
-                            /* 鼠标悬停时的翻转动画 */
+                            /* Flip animation on hover */
                             #Bird11.flipped {
                                 animation: birdFloatFlipped 3s ease-in-out infinite;
                             }
@@ -521,7 +521,7 @@
                                 }
                             }
 
-                            /* 鼠标悬停时的跳动动画 */
+                            /* Hopping animation on hover */
                             #Bird11.hopping {
                                 animation: birdHop 0.6s ease-in-out;
                             }
@@ -541,7 +541,7 @@
                                 }
                             }
 
-                            /* 点击动画 */
+                            /* Click animation */
                             #Bird11.clicking {
                                 animation: birdClick 0.5s ease-in-out;
                             }

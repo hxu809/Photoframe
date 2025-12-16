@@ -77,7 +77,7 @@
             display: none;
         }
 
-        /* 返回按钮 */
+        /* Back button */
         .back-button {
             position: fixed;
             top: 30px;
@@ -101,7 +101,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        /* 眼睛平滑移动效果 */
+        /* Smooth eye movement effect */
         #Lefteye1, #Righteye1 {
             transition: transform 0.1s ease-out;
         }
@@ -113,29 +113,29 @@
         <div class="title">CUBISM ART</div>
     </div>
 
-    <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
+    <button class="back-button" onclick="window.location.href='index.html'">Back to Frame</button>
 
     <script>
-        // ESC键返回到上一级
+        // ESC key to return to previous level
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
                 window.location.href = 'index.html';
             }
         });
 
-        // 加载并解析SVG
+        // Load and parse SVG
         fetch('DynamicPicasso.svg')
             .then(response => response.text())
             .then(svgText => {
                 document.getElementById('svgContainer').innerHTML = svgText;
 
-                // SVG加载完成后，添加眼睛跟随鼠标移动的功能
+                // After SVG loads, add eye tracking functionality
                 setTimeout(() => {
                     const leftEye = document.getElementById('Lefteye1');
                     const rightEye = document.getElementById('Righteye1');
 
                     if (leftEye && rightEye) {
-                        // 眼睛的原始位置和大小
+                        // Original position and size of eyes
                         const leftEyeData = {
                             x: 696,
                             y: 202,
@@ -154,17 +154,17 @@
                             centerY: 211 + 82/2
                         };
 
-                        // 眼睛可移动的最大距离（在眼眶范围内）
-                        const maxMoveX = 15;  // 水平最大移动距离
-                        const maxMoveY = 10;  // 垂直最大移动距离
+                        // Maximum distance eyes can move (within eye socket range)
+                        const maxMoveX = 15;  // Horizontal maximum movement distance
+                        const maxMoveY = 10;  // Vertical maximum movement distance
 
-                        // 监听鼠标移动
+                        // Listen for mouse movement
                         document.addEventListener('mousemove', (e) => {
-                            // 获取鼠标相对于页面的位置
+                            // Get mouse position relative to page
                             const mouseX = e.clientX;
                             const mouseY = e.clientY;
 
-                            // 计算左眼移动
+                            // Calculate left eye movement
                             const leftDeltaX = mouseX - leftEyeData.centerX;
                             const leftDeltaY = mouseY - leftEyeData.centerY;
                             const leftDistance = Math.sqrt(leftDeltaX * leftDeltaX + leftDeltaY * leftDeltaY);
@@ -172,13 +172,13 @@
                             let leftMoveX = (leftDeltaX / leftDistance) * maxMoveX;
                             let leftMoveY = (leftDeltaY / leftDistance) * maxMoveY;
 
-                            // 限制移动范围
+                            // Limit movement range
                             if (leftDistance < 200) {
                                 leftMoveX = leftMoveX * (leftDistance / 200);
                                 leftMoveY = leftMoveY * (leftDistance / 200);
                             }
 
-                            // 计算右眼移动
+                            // Calculate right eye movement
                             const rightDeltaX = mouseX - rightEyeData.centerX;
                             const rightDeltaY = mouseY - rightEyeData.centerY;
                             const rightDistance = Math.sqrt(rightDeltaX * rightDeltaX + rightDeltaY * rightDeltaY);
@@ -186,13 +186,13 @@
                             let rightMoveX = (rightDeltaX / rightDistance) * maxMoveX;
                             let rightMoveY = (rightDeltaY / rightDistance) * maxMoveY;
 
-                            // 限制移动范围
+                            // Limit movement range
                             if (rightDistance < 200) {
                                 rightMoveX = rightMoveX * (rightDistance / 200);
                                 rightMoveY = rightMoveY * (rightDistance / 200);
                             }
 
-                            // 应用变换
+                            // Apply transformation
                             leftEye.style.transform = `translate(${leftMoveX}px, ${leftMoveY}px)`;
                             rightEye.style.transform = `translate(${rightMoveX}px, ${rightMoveY}px)`;
                         });
@@ -200,7 +200,7 @@
                 }, 100);
             })
             .catch(error => {
-                console.error('加载SVG失败:', error);
+                console.error('Failed to load SVG:', error);
             });
     </script>
 </body>

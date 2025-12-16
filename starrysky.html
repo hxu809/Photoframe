@@ -127,9 +127,9 @@
         <div class="title">Starry Night</div>
     </div>
 
-    <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
+    <button class="back-button" onclick="window.location.href='index.html'">Back to Frame</button>
 
-    <!-- 视频叠加层 -->
+    <!-- Video Overlay -->
     <div id="videoOverlay" class="video-overlay">
         <video id="starryVideo" preload="auto" loop>
             <source src="starrysky.mp4" type="video/mp4">
@@ -137,32 +137,32 @@
     </div>
 
     <script>
-        // 播放星空视频
+        // Play starry sky video
         function playStarryVideo() {
             const videoOverlay = document.getElementById('videoOverlay');
             const starryVideo = document.getElementById('starryVideo');
 
             if (!videoOverlay || !starryVideo) {
-                console.error('❌ 未找到视频元素');
+                console.error('❌ Video elements not found');
                 return;
             }
 
-            console.log('🎬 开始播放星空视频');
+            console.log('🎬 Starting starry sky video');
             videoOverlay.classList.add('show');
             starryVideo.currentTime = 0;
 
             const playPromise = starryVideo.play();
             if (playPromise !== undefined) {
                 playPromise
-                    .then(() => console.log('✅ 视频开始循环播放'))
+                    .then(() => console.log('✅ Video started looping'))
                     .catch(error => {
-                        console.error('❌ 视频播放失败:', error);
+                        console.error('❌ Video playback failed:', error);
                         videoOverlay.classList.remove('show');
                     });
             }
         }
 
-        // 关闭视频
+        // Close video
         function closeVideo() {
             const videoOverlay = document.getElementById('videoOverlay');
             const starryVideo = document.getElementById('starryVideo');
@@ -172,73 +172,73 @@
                 if (starryVideo) {
                     starryVideo.pause();
                 }
-                console.log('✅ 视频已关闭');
+                console.log('✅ Video closed');
                 return true;
             }
             return false;
         }
 
-        // ESC键关闭视频或返回到上一级
+        // ESC key to close video or return to previous level
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
-                // 如果视频正在播放，先关闭视频
+                // If video is playing, close it first
                 if (!closeVideo()) {
-                    // 如果没有视频在播放，返回首页
+                    // If no video is playing, return to home page
                     window.location.href = 'index.html';
                 }
             }
         });
 
-        // 加载并解析SVG
+        // Load and parse SVG
         fetch('DynamicStarrysky.svg')
             .then(response => response.text())
             .then(svgText => {
                 const container = document.getElementById('svgContainer');
                 container.innerHTML = svgText;
 
-                // 等待SVG加载完成后添加聚焦效果样式
+                // Wait for SVG to load then add focus effect styles
                 setTimeout(() => {
                     const svg = container.querySelector('svg');
                     if (svg) {
-                        console.log('✅ SVG元素找到');
+                        console.log('✅ SVG element found');
 
-                        // 创建或获取 <style> 元素
+                        // Create or get <style> element
                         let styleElement = svg.querySelector('style');
                         if (!styleElement) {
                             styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
                             svg.insertBefore(styleElement, svg.firstChild);
-                            console.log('✅ 新建style元素');
+                            console.log('✅ New style element created');
                         } else {
-                            console.log('✅ 使用现有style元素');
+                            console.log('✅ Using existing style element');
                         }
 
-                        // 检查元素是否存在
+                        // Check if elements exist
                         const sky = svg.querySelector('[id="Sky 1"]');
                         const tower = svg.querySelector('[id="Tower 1"]');
                         const town = svg.querySelector('[id="Town 1"]');
 
-                        console.log('元素检查:');
-                        console.log('  Sky 1:', sky ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Tower 1:', tower ? '✅ 找到' : '❌ 未找到');
-                        console.log('  Town 1:', town ? '✅ 找到' : '❌ 未找到');
+                        console.log('Element check:');
+                        console.log('  Sky 1:', sky ? '✅ Found' : '❌ Not found');
+                        console.log('  Tower 1:', tower ? '✅ Found' : '❌ Not found');
+                        console.log('  Town 1:', town ? '✅ Found' : '❌ Not found');
 
-                        // 添加聚焦效果的CSS - 使用属性选择器确保兼容性
+                        // Add focus effect CSS - use attribute selector for compatibility
                         const focusStyles = `
-                            /* 星空背景 - 稍微放大 */
+                            /* Sky background - slightly enlarged */
                             [id="Sky 1"] {
                                 transform: scale(1.15);
                                 transform-origin: center;
                                 transform-box: fill-box;
                             }
 
-                            /* 塔 - 稍微放大，作为视觉焦点 */
+                            /* Tower - slightly enlarged, as visual focus */
                             [id="Tower 1"] {
                                 transform: scale(1.25);
                                 transform-origin: center;
                                 transform-box: fill-box;
                             }
 
-                            /* 村庄 - 稍微缩小 */
+                            /* Village - slightly reduced */
                             [id="Town 1"] {
                                 transform: scale(0.85);
                                 transform-origin: center;
@@ -247,21 +247,21 @@
                         `;
 
                         styleElement.textContent += focusStyles;
-                        console.log('✅ 聚焦效果CSS已注入');
-                        console.log('CSS长度:', styleElement.textContent.length, '字符');
+                        console.log('✅ Focus effect CSS injected');
+                        console.log('CSS length:', styleElement.textContent.length, 'characters');
 
-                        // 验证CSS是否真的被应用
+                        // Verify CSS is applied
                         if (sky) {
                             const computedStyle = window.getComputedStyle(sky);
-                            console.log('星空的transform:', computedStyle.transform);
+                            console.log('Sky transform:', computedStyle.transform);
                         }
                         if (tower) {
                             const computedStyle = window.getComputedStyle(tower);
-                            console.log('塔的transform:', computedStyle.transform);
+                            console.log('Tower transform:', computedStyle.transform);
                         }
 
-                        // SVG加载完成后，自动播放视频
-                        console.log('🎬 准备自动播放星空视频');
+                        // Auto-play video after SVG loads
+                        console.log('🎬 Preparing to auto-play starry sky video');
                         setTimeout(() => {
                             playStarryVideo();
                         }, 300);
@@ -269,7 +269,7 @@
                 }, 100);
             })
             .catch(error => {
-                console.error('加载SVG失败:', error);
+                console.error('Failed to load SVG:', error);
             });
     </script>
 </body>
