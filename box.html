@@ -577,50 +577,90 @@
             signatureCanvas.height = rect.height * 2;
             signatureCtx = signatureCanvas.getContext('2d');
             signatureCtx.scale(2, 2);
-            signatureCtx.lineWidth = 3;
+
+            // Brush ink style - thicker, darker, more organic
+            signatureCtx.lineWidth = 4;
             signatureCtx.lineCap = 'round';
-            signatureCtx.strokeStyle = '#000';
+            signatureCtx.lineJoin = 'round';
+            signatureCtx.strokeStyle = '#000000';
+            signatureCtx.globalAlpha = 0.9;
+
+            let lastX = 0;
+            let lastY = 0;
 
             document.getElementById('clear-btn').onclick = () => {
                 signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+                console.log('✏️ Signature cleared');
             };
 
             document.getElementById('confirm-btn').onclick = () => {
+                console.log('✅ Signature confirmed');
                 closeSignatureOverlay();
                 tearOffLabel();
             };
 
-            signatureCanvas.addEventListener('pointerdown', startSignature);
-            signatureCanvas.addEventListener('pointermove', drawSignature);
-            signatureCanvas.addEventListener('pointerup', endSignature);
-        }
+            // Enhanced drawing functions with smoother lines
+            const startDrawing = (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                const pos = getSignaturePos(e);
+                lastX = pos.x;
+                lastY = pos.y;
+                signatureCtx.beginPath();
+                signatureCtx.moveTo(pos.x, pos.y);
+                console.log('🖊️ Started drawing');
+            };
 
-        function startSignature(e) {
-            e.preventDefault();
-            isDrawing = true;
-            const pos = getSignaturePos(e);
-            signatureCtx.beginPath();
-            signatureCtx.moveTo(pos.x, pos.y);
-        }
+            const draw = (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
 
-        function drawSignature(e) {
-            e.preventDefault();
-            if (!isDrawing) return;
-            const pos = getSignaturePos(e);
-            signatureCtx.lineTo(pos.x, pos.y);
-            signatureCtx.stroke();
-        }
+                const pos = getSignaturePos(e);
 
-        function endSignature(e) {
-            e.preventDefault();
-            isDrawing = false;
+                // Smooth line drawing with pressure simulation
+                signatureCtx.lineWidth = 4 + Math.random() * 2; // Variable width for organic feel
+                signatureCtx.globalAlpha = 0.8 + Math.random() * 0.2; // Slight opacity variation
+
+                signatureCtx.lineTo(pos.x, pos.y);
+                signatureCtx.stroke();
+                signatureCtx.beginPath();
+                signatureCtx.moveTo(pos.x, pos.y);
+
+                lastX = pos.x;
+                lastY = pos.y;
+            };
+
+            const stopDrawing = (e) => {
+                e.preventDefault();
+                if (isDrawing) {
+                    isDrawing = false;
+                    signatureCtx.closePath();
+                    console.log('🖊️ Stopped drawing');
+                }
+            };
+
+            // Mouse events
+            signatureCanvas.addEventListener('mousedown', startDrawing);
+            signatureCanvas.addEventListener('mousemove', draw);
+            signatureCanvas.addEventListener('mouseup', stopDrawing);
+            signatureCanvas.addEventListener('mouseleave', stopDrawing);
+
+            // Touch events for mobile
+            signatureCanvas.addEventListener('touchstart', startDrawing);
+            signatureCanvas.addEventListener('touchmove', draw);
+            signatureCanvas.addEventListener('touchend', stopDrawing);
+            signatureCanvas.addEventListener('touchcancel', stopDrawing);
+
+            console.log('✅ Signature canvas initialized with ink brush style');
         }
 
         function getSignaturePos(e) {
             const rect = signatureCanvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             return {
-                x: (e.clientX - rect.left) * (signatureCanvas.width / rect.width) / 2,
-                y: (e.clientY - rect.top) * (signatureCanvas.height / rect.height) / 2
+                x: (clientX - rect.left) * (signatureCanvas.width / rect.width) / 2,
+                y: (clientY - rect.top) * (signatureCanvas.height / rect.height) / 2
             };
         }
 
