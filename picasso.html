@@ -105,6 +105,29 @@
         #Lefteye1, #Righteye1 {
             transition: transform 0.1s ease-out;
         }
+
+        /* Shake animation when hit */
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+            10%, 30%, 50%, 70%, 90% {
+                transform: translate(-10px, -5px) rotate(-2deg);
+            }
+            20%, 40%, 60%, 80% {
+                transform: translate(10px, 5px) rotate(2deg);
+            }
+        }
+
+        /* Make svg-container clickable */
+        .svg-container {
+            cursor: pointer;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -115,7 +138,34 @@
 
     <button class="back-button" onclick="window.location.href='index.html'">Back to Frame</button>
 
+    <!-- Pain sound audio -->
+    <audio id="painSound" preload="auto">
+        <source src="男性疼痛声.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
+        // Play pain sound and shake effect when painting is hit
+        function hitPainting() {
+            const canvas = document.querySelector('.canvas');
+            const painSound = document.getElementById('painSound');
+
+            // Add shake animation
+            canvas.classList.add('shake');
+
+            // Play pain sound
+            painSound.currentTime = 0;
+            painSound.play().catch(error => {
+                console.error('Failed to play pain sound:', error);
+            });
+
+            // Remove shake class after animation completes
+            setTimeout(() => {
+                canvas.classList.remove('shake');
+            }, 500);
+
+            console.log('💥 Painting got hit!');
+        }
+
         // ESC key to return to previous level
         document.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') {
@@ -196,6 +246,19 @@
                             leftEye.style.transform = `translate(${leftMoveX}px, ${leftMoveY}px)`;
                             rightEye.style.transform = `translate(${rightMoveX}px, ${rightMoveY}px)`;
                         });
+                    }
+
+                    // Add click event listener to entire SVG container
+                    const svgContainer = document.getElementById('svgContainer');
+                    if (svgContainer) {
+                        svgContainer.addEventListener('click', (e) => {
+                            // Don't trigger if clicking the back button
+                            if (e.target.closest('.back-button')) {
+                                return;
+                            }
+                            hitPainting();
+                        });
+                        console.log('✅ Click event listener added to painting');
                     }
                 }, 100);
             })
