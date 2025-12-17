@@ -186,7 +186,115 @@
 
         /* 返回按钮 */
         .back-button {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #333;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Introduction dialog */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
             display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .intro-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .intro-dialog {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .intro-dialog h2 {
+            margin: 0 0 20px 0;
+            color: #333;
+            font-size: 32px;
+            font-weight: 600;
+            border-bottom: 3px solid #1a1a2e;
+            padding-bottom: 10px;
+        }
+
+        .intro-dialog p {
+            margin: 15px 0;
+            color: #555;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .intro-close-btn {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .intro-close-btn:hover {
+            background: #2a2a4e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Make elements clickable */
+        #Fuji, #Boat1, #Boat2, #Boat3, #Wave1, #Wave2, #Wave3, #Wave4 {
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        #Fuji:hover, #Boat1:hover, #Boat2:hover, #Boat3:hover,
+        #Wave1:hover, #Wave2:hover, #Wave3:hover, #Wave4:hover {
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -196,17 +304,123 @@
         <div class="title">神奈川冲浪里</div>
     </div>
 
-    <button class="back-button" onclick="window.location.href='index.html'">返回相框</button>
+    <button class="back-button" onclick="window.location.href='index.html'">Back to Frame</button>
+
+    <!-- Introduction overlay -->
+    <div id="introOverlay" class="intro-overlay">
+        <div class="intro-dialog">
+            <h2 id="introTitle"></h2>
+            <div id="introContent"></div>
+            <button class="intro-close-btn" onclick="closeIntro()">Close</button>
+        </div>
+    </div>
 
     <script>
-        // 加载并解析SVG
+        // Element introductions
+        const introductions = {
+            'Fuji': {
+                title: '🗻 Mount Fuji',
+                content: `
+                    <p><strong>Mount Fuji</strong> is Japan's highest mountain and one of its most iconic symbols.</p>
+                    <p>In Hokusai's famous series "Thirty-Six Views of Mount Fuji," the mountain appears as a constant, serene presence in the background, representing stability and eternity.</p>
+                    <p>The snow-capped peak rises majestically above the turbulent waves, creating a powerful contrast between the permanent and the fleeting.</p>
+                `
+            },
+            'Boat': {
+                title: '⛵ Boats',
+                content: `
+                    <p><strong>The boats</strong> represent human endeavor and courage against nature's overwhelming power.</p>
+                    <p>These are traditional Japanese fishing boats (known as "oshiokuri-bune"), with their crews desperately trying to navigate through the massive waves.</p>
+                    <p>The boats' vulnerability emphasizes the theme of mankind's relationship with the powerful forces of nature.</p>
+                `
+            },
+            'Wave': {
+                title: '🌊 The Great Wave',
+                content: `
+                    <p><strong>The Great Wave</strong> is one of the most recognizable images in art history.</p>
+                    <p>This massive wave dominates the composition, its claw-like white foam seeming to threaten both the boats and distant Mount Fuji.</p>
+                    <p>The wave's dynamic curve and detailed foam spray demonstrate Hokusai's masterful technique and his deep understanding of water's movement.</p>
+                    <p>Interestingly, the wave may have been inspired by European prints that Hokusai studied, showing the cultural exchange between East and West.</p>
+                `
+            }
+        };
+
+        // Show introduction dialog
+        function showIntro(elementType) {
+            const intro = introductions[elementType];
+            if (!intro) return;
+
+            document.getElementById('introTitle').textContent = intro.title;
+            document.getElementById('introContent').innerHTML = intro.content;
+            document.getElementById('introOverlay').classList.add('show');
+
+            console.log(`📖 Showing introduction for: ${elementType}`);
+        }
+
+        // Close introduction dialog
+        function closeIntro() {
+            document.getElementById('introOverlay').classList.remove('show');
+            console.log('✖️ Introduction closed');
+        }
+
+        // Close intro with ESC key
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                const introOverlay = document.getElementById('introOverlay');
+                if (introOverlay.classList.contains('show')) {
+                    closeIntro();
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }
+        });
+
+        // Load and parse SVG
         fetch('DynamicUkiyoe.svg')
             .then(response => response.text())
             .then(svgText => {
                 document.getElementById('svgContainer').innerHTML = svgText;
+
+                // Add click events after SVG loads
+                setTimeout(() => {
+                    const svg = document.querySelector('svg');
+                    if (!svg) {
+                        console.error('❌ SVG not found');
+                        return;
+                    }
+
+                    // Mount Fuji
+                    const fuji = svg.querySelector('#Fuji');
+                    if (fuji) {
+                        fuji.addEventListener('click', () => showIntro('Fuji'));
+                        console.log('✅ Mount Fuji click event added');
+                    }
+
+                    // Boats
+                    const boats = ['Boat1', 'Boat2', 'Boat3'];
+                    boats.forEach(boatId => {
+                        const boat = svg.querySelector(`#${boatId}`);
+                        if (boat) {
+                            boat.addEventListener('click', () => showIntro('Boat'));
+                            console.log(`✅ ${boatId} click event added`);
+                        }
+                    });
+
+                    // Waves
+                    const waves = ['Wave1', 'Wave2', 'Wave3', 'Wave4'];
+                    waves.forEach(waveId => {
+                        const wave = svg.querySelector(`#${waveId}`);
+                        if (wave) {
+                            wave.addEventListener('click', () => showIntro('Wave'));
+                            console.log(`✅ ${waveId} click event added`);
+                        }
+                    });
+
+                    console.log('✅ All click events initialized');
+                }, 100);
             })
             .catch(error => {
-                console.error('加载SVG失败:', error);
+                console.error('Failed to load SVG:', error);
             });
     </script>
 </body>
