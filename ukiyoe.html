@@ -394,11 +394,40 @@
                         return;
                     }
 
+                    // Inject styles into SVG for better control
+                    let styleElement = svg.querySelector('style');
+                    if (!styleElement) {
+                        styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+                        svg.insertBefore(styleElement, svg.firstChild);
+                    }
+
+                    const clickableStyles = `
+                        #Fuji, #Boat1, #Boat2, #Boat3, #Wave1, #Wave2, #Wave3, #Wave4 {
+                            cursor: pointer;
+                            transition: opacity 0.3s ease;
+                            pointer-events: all;
+                        }
+
+                        #Fuji:hover, #Boat1:hover, #Boat2:hover, #Boat3:hover,
+                        #Wave1:hover, #Wave2:hover, #Wave3:hover, #Wave4:hover {
+                            opacity: 0.8;
+                        }
+                    `;
+                    styleElement.textContent += clickableStyles;
+                    console.log('✅ Clickable styles injected into SVG');
+
                     // Mount Fuji
                     const fuji = svg.querySelector('#Fuji');
                     if (fuji) {
-                        fuji.addEventListener('click', () => showIntro('Fuji'));
+                        fuji.style.pointerEvents = 'all';
+                        fuji.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showIntro('Fuji');
+                            console.log('🗻 Mount Fuji clicked');
+                        });
                         console.log('✅ Mount Fuji click event added');
+                    } else {
+                        console.error('❌ Mount Fuji element not found');
                     }
 
                     // Boats
@@ -406,7 +435,12 @@
                     boats.forEach(boatId => {
                         const boat = svg.querySelector(`#${boatId}`);
                         if (boat) {
-                            boat.addEventListener('click', () => showIntro('Boat'));
+                            boat.style.pointerEvents = 'all';
+                            boat.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                showIntro('Boat');
+                                console.log(`⛵ ${boatId} clicked`);
+                            });
                             console.log(`✅ ${boatId} click event added`);
                         }
                     });
@@ -416,7 +450,12 @@
                     waves.forEach(waveId => {
                         const wave = svg.querySelector(`#${waveId}`);
                         if (wave) {
-                            wave.addEventListener('click', () => showIntro('Wave'));
+                            wave.style.pointerEvents = 'all';
+                            wave.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                showIntro('Wave');
+                                console.log(`🌊 ${waveId} clicked`);
+                            });
                             console.log(`✅ ${waveId} click event added`);
                         }
                     });
