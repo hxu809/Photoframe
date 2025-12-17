@@ -16,7 +16,7 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Arial', sans-serif;
-            background: #1a1a1a;
+            background: #6a6a6a;
         }
 
         /* Canvas container */
@@ -218,8 +218,8 @@
         // ============================================
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x2a2a2a);
-            scene.fog = new THREE.Fog(0x2a2a2a, 10, 50);
+            scene.background = new THREE.Color(0x707070);
+            scene.fog = new THREE.Fog(0x707070, 10, 50);
 
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(5, 4, 8);
@@ -444,7 +444,7 @@
         function createFloor() {
             const floor = new THREE.Mesh(
                 new THREE.PlaneGeometry(20, 20),
-                new THREE.MeshStandardMaterial({ color: 0x404040, roughness: 0.8 })
+                new THREE.MeshStandardMaterial({ color: 0x8a8a8a, roughness: 0.8 })
             );
             floor.rotation.x = -Math.PI / 2;
             floor.receiveShadow = true;
