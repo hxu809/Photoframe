@@ -201,6 +201,11 @@
 
     <div class="artwork-hint" id="artworkHint">🎨 点击画作或按 Enter 进入动态效果 🎨</div>
 
+    <!-- Transition sound effect -->
+    <audio id="transitionSound" preload="auto">
+        <source src="转场.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         let currentIndex = 0;
         let isScrolling = false;
@@ -398,6 +403,16 @@
         function goToDynamicArtwork() {
             const info = artworkInfo[currentIndex];
             if (!info) return;
+
+            // 播放转场音效
+            const transitionSound = document.getElementById('transitionSound');
+            if (transitionSound) {
+                transitionSound.currentTime = 0;
+                transitionSound.play().catch(error => {
+                    console.error('Failed to play transition sound:', error);
+                });
+                console.log('🔊 Playing transition sound effect');
+            }
 
             // 所有画作都使用黑色放大旋转的漩涡吸入效果
             container.classList.add('vortex-transition');
