@@ -416,51 +416,83 @@
                     styleElement.textContent += clickableStyles;
                     console.log('✅ Clickable styles injected into SVG');
 
-                    // Mount Fuji
+                    // Get element positions for precise click detection
                     const fuji = svg.querySelector('#Fuji');
-                    if (fuji) {
-                        fuji.style.pointerEvents = 'all';
-                        fuji.addEventListener('click', (e) => {
+                    const boats = ['Boat1', 'Boat2', 'Boat3'].map(id => svg.querySelector(`#${id}`)).filter(el => el);
+                    const waves = ['Wave1', 'Wave2', 'Wave3', 'Wave4'].map(id => svg.querySelector(`#${id}`)).filter(el => el);
+
+                    // Function to check if point is inside element bounds
+                    function isPointInElement(element, x, y) {
+                        const rect = element.getBoundingClientRect();
+                        const svgRect = svg.getBoundingClientRect();
+                        const relativeX = x - svgRect.left;
+                        const relativeY = y - svgRect.top;
+                        const elemX = rect.left - svgRect.left;
+                        const elemY = rect.top - svgRect.top;
+
+                        return relativeX >= elemX &&
+                               relativeX <= elemX + rect.width &&
+                               relativeY >= elemY &&
+                               relativeY <= elemY + rect.height;
+                    }
+
+                    // Add click handler to entire SVG
+                    svg.addEventListener('click', (e) => {
+                        const x = e.clientX;
+                        const y = e.clientY;
+
+                        console.log(`🖱️ Click at (${x}, ${y})`);
+
+                        // Check Mount Fuji first (highest priority)
+                        if (fuji && isPointInElement(fuji, x, y)) {
                             e.stopPropagation();
                             showIntro('Fuji');
                             console.log('🗻 Mount Fuji clicked');
-                        });
-                        console.log('✅ Mount Fuji click event added');
-                    } else {
-                        console.error('❌ Mount Fuji element not found');
-                    }
+                            return;
+                        }
 
-                    // Boats
-                    const boats = ['Boat1', 'Boat2', 'Boat3'];
-                    boats.forEach(boatId => {
-                        const boat = svg.querySelector(`#${boatId}`);
-                        if (boat) {
-                            boat.style.pointerEvents = 'all';
-                            boat.addEventListener('click', (e) => {
+                        // Check boats
+                        for (let boat of boats) {
+                            if (isPointInElement(boat, x, y)) {
                                 e.stopPropagation();
                                 showIntro('Boat');
-                                console.log(`⛵ ${boatId} clicked`);
-                            });
-                            console.log(`✅ ${boatId} click event added`);
+                                console.log(`⛵ Boat clicked`);
+                                return;
+                            }
                         }
-                    });
 
-                    // Waves
-                    const waves = ['Wave1', 'Wave2', 'Wave3', 'Wave4'];
-                    waves.forEach(waveId => {
-                        const wave = svg.querySelector(`#${waveId}`);
-                        if (wave) {
-                            wave.style.pointerEvents = 'all';
-                            wave.addEventListener('click', (e) => {
+                        // Check waves
+                        for (let wave of waves) {
+                            if (isPointInElement(wave, x, y)) {
                                 e.stopPropagation();
                                 showIntro('Wave');
-                                console.log(`🌊 ${waveId} clicked`);
-                            });
-                            console.log(`✅ ${waveId} click event added`);
+                                console.log(`🌊 Wave clicked`);
+                                return;
+                            }
                         }
                     });
 
-                    console.log('✅ All click events initialized');
+                    // Also add direct click handlers for better hover feedback
+                    if (fuji) {
+                        fuji.style.pointerEvents = 'all';
+                        console.log('✅ Mount Fuji element found and configured');
+                    }
+
+                    boats.forEach((boat, idx) => {
+                        if (boat) {
+                            boat.style.pointerEvents = 'all';
+                            console.log(`✅ Boat${idx + 1} configured`);
+                        }
+                    });
+
+                    waves.forEach((wave, idx) => {
+                        if (wave) {
+                            wave.style.pointerEvents = 'all';
+                            console.log(`✅ Wave${idx + 1} configured`);
+                        }
+                    });
+
+                    console.log('✅ All click events initialized with priority-based detection');
                 }, 100);
             })
             .catch(error => {
