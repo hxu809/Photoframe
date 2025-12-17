@@ -658,9 +658,10 @@
             const rect = signatureCanvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            // Since context is scaled by 2, we need to use actual pixel coordinates
             return {
-                x: (clientX - rect.left) * (signatureCanvas.width / rect.width) / 2,
-                y: (clientY - rect.top) * (signatureCanvas.height / rect.height) / 2
+                x: clientX - rect.left,
+                y: clientY - rect.top
             };
         }
 
